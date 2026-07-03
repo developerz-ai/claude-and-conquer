@@ -8,7 +8,7 @@ table(
   loadProjects().map((p) => [
     `${p.org}/${p.repo}`,
     p.team ?? teamForRepo(`${p.org}/${p.repo}`)?.id ?? `(pool: ${p.pool ?? "default"})`,
-    p.model ?? "claude-fable-5",
+    p.model ?? "claude-opus-4-8",
     p.deploy?.method ?? "-",
     p.verify ?? "-",
   ]),

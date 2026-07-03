@@ -20,7 +20,7 @@
 | mode | runs | for |
 |---|---|---|
 | `claudetm` (default) | `claudetm start --auto-merge --verify` | features, refactors, anything producing PRs |
-| `print` | `claude -p --model fable --fallback-model opus --permission-mode bypassPermissions --output-format json` | quick analysis/reports, no PR machinery |
+| `print` | `claude -p --model opus --fallback-model opus --permission-mode bypassPermissions --output-format json` | quick analysis/reports, no PR machinery |
 
 ## Capacity model
 

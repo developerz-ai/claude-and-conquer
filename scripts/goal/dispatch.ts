@@ -5,7 +5,7 @@
 //
 // mode=claudetm (default): claudetm start "<goal>" — plans, opens PRs, and runs its merge-pr
 //   cycle that resolves CI + review comments BEFORE merging each PR (no --auto-merge unless asked).
-// mode=print: one-shot `claude -p` with --model fable for quick jobs that
+// mode=print: one-shot `claude -p` (default model opus 4.8) for quick jobs that
 //   don't need the PR machinery.
 import { findTeam, activeTeams, argAfter } from "../lib/inventory.ts";
 import { findProject, remotePath, renderMission } from "../lib/projects.ts";
@@ -29,7 +29,7 @@ const project = findProject(projectArg);
 // review comments). `claudetm` = the heavy multi-task planner (opt in: --mode claudetm). `print` =
 // quick one-shot, no PR/merge.
 const mode = argAfter(argv, "--mode") ?? "pr";
-const model = argAfter(argv, "--model") ?? project.model ?? "claude-fable-5";
+const model = argAfter(argv, "--model") ?? project.model ?? "claude-opus-4-8";
 
 // Team resolution: the orchestrator picks the box. Every box mirrors the whole workspace
 // (see `cnc sync-repos`), so any ready box can run any goal — we round-robin by state/load.

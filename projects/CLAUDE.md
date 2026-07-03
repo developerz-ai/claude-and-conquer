@@ -17,7 +17,7 @@ One directory per repo: `projects/<org>/<repo>/`. Load through `scripts/lib/proj
 | `team` | | pinned team id; omit to auto-assign from `pool` |
 | `pool` | | pool to draw a team from; default `default` |
 | `path` | | remote checkout; default `<workspace>/<org>/<repo>` |
-| `model` | | default `claude-fable-5` |
+| `model` | | default `claude-opus-4-8` |
 | `verify` | | command that must pass before a PR, e.g. `bun run verify` |
 | `deploy.method` | | `gitops-argocd` / `docker-compose` / `coolify` / ... |
 | `deploy.infra_repo` | | repo describing the deployment, e.g. `acme/infrastructure` |

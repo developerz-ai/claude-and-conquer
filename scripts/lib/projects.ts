@@ -18,7 +18,7 @@ export interface Project {
   team?: string; // pinned team id; omit to auto-assign from pool
   pool?: string; // pool to pick from when no team pinned
   path?: string; // remote checkout (default: <workspace>/<org>/<repo>)
-  model?: string; // model for claude -p / claudetm (default: claude-fable-5)
+  model?: string; // model for claude -p / claudetm (default: claude-opus-4-8)
   setup?: string; // install deps / prep the dev env after clone, e.g. "bun install" (default: bun install if package.json)
   env_item?: string; // Bitwarden item whose notes are the repo's .env (default: ".env <repo>")
   verify?: string; // command that must pass before PR, e.g. "bun run verify"
@@ -41,7 +41,7 @@ export function loadProjects(): Project[] {
       if (!existsSync(file)) continue;
       const raw = Bun.YAML.parse(readFileSync(file, "utf8")) as Partial<Project>;
       out.push({
-        model: "claude-fable-5",
+        model: "claude-opus-4-8",
         ...raw,
         org,
         repo,

@@ -1,7 +1,7 @@
 github: acme/webapp
 # team: gdi-1        # pin a team, or leave unset to auto-assign from pool
 pool: default
-model: claude-fable-5
+model: claude-opus-4-8
 verify: bun run verify
 deploy:
   method: gitops-argocd

@@ -10,7 +10,7 @@ A goal = one autonomous work order for one team VPS. Dispatched via tmux + claud
 | want | run |
 |---|---|
 | dispatch deep work | `bin/cnc goal "<goal>" --project <org/repo>` |
-| quick one-shot (no PRs) | `... --mode print` (runs `claude -p --model fable`) |
+| quick one-shot (no PRs) | `... --mode print` (runs `claude -p` (opus 4.8)) |
 | flight log | `bin/cnc goals` |
 | verify it shipped | `bin/cnc deploy-check <org/repo>` |
 | watch live | `bin/cnc ssh <team> -- tmux attach -t <session>` |
