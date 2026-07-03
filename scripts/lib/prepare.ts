@@ -38,6 +38,19 @@ export async function prepareRepo(
   if (c.code !== 0) throw new Error(`clone ${project.github} on ${team.id} failed: ${c.stderr || c.stdout}`);
   const cloned = c.stdout.includes("__CLONED__");
 
+  // 1b. trust the checkout for `claude -p`. Headless claude refuses to run tools in an untrusted
+  // workspace (it hangs on the trust gate — --dangerously-skip-permissions doesn't cover it), so we
+  // set hasTrustDialogAccepted for the repo path in ~/.claude.json on the box. Idempotent.
+  const trustPy = [
+    "import json,os,sys",
+    'p=os.path.expanduser("~/.claude.json")',
+    "try: j=json.load(open(p))",
+    "except Exception: j={}",
+    'j.setdefault("projects",{}).setdefault(sys.argv[1],{})["hasTrustDialogAccepted"]=True',
+    'json.dump(j,open(p,"w"),indent=2)',
+  ].join("\n");
+  await sshExec(team, `abs=$(cd ${path} && pwd) && python3 - "$abs"`, { stdin: trustPy });
+
   // 2. deps — install into the checkout so `verify` can run
   let deps: PrepareResult["deps"] = "skip";
   if (installDeps) {

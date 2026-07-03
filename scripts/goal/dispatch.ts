@@ -128,8 +128,9 @@ const inner =
       ? `claudetm clean -f >/dev/null 2>&1 || true; claudetm start "$(cat "${goalFile}")" ${argv.includes("--auto-merge") ? "--auto-merge" : "--no-auto-merge"} --verify`
       // DEFAULT `pr`: claude -p is the AI developer — does the work (across repos if needed; every
       // repo is mirrored under ~/workspace), opens focused PR(s), and merges each with
-      // `claudetm merge-pr` (fix CI + review comments) per the mission template.
-      : `claude -p "$(cat "${goalFile}")" --model ${effModel} --fallback-model opus --dangerously-skip-permissions`;
+      // `claudetm merge-pr` (fix CI + review comments) per the mission template. stream-json flushes
+      // each event live to the log (raw -p buffers until done), so monitoring can see progress.
+      : `claude -p "$(cat "${goalFile}")" --model ${effModel} --fallback-model opus --dangerously-skip-permissions --verbose --output-format stream-json`;
 
 const runner = [
   `#!/usr/bin/env bash`,
