@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+# cnc — Claude and Conquer command & control center.
+set -euo pipefail
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cmd="${1:-help}"
+shift || true
+
+case "$cmd" in
+  status)       exec bun "$ROOT/scripts/fleet/status.ts" "$@" ;;
+  teams)        exec bun "$ROOT/scripts/fleet/list.ts" "$@" ;;
+  accounts)     exec bun "$ROOT/scripts/fleet/accounts.ts" "$@" ;;
+  usage)        exec bun "$ROOT/scripts/fleet/usage.ts" "$@" ;;
+  exec)         exec bun "$ROOT/scripts/fleet/exec.ts" "$@" ;;
+  ssh)          exec bun "$ROOT/scripts/fleet/ssh.ts" "$@" ;;
+  bootstrap)    exec bun "$ROOT/scripts/fleet/bootstrap.ts" "$@" ;;
+  optimize)     exec bun "$ROOT/scripts/fleet/optimize.ts" "$@" ;;
+  secrets)      exec bun "$ROOT/scripts/fleet/secrets.ts" "$@" ;;
+  gh-setup)     exec bun "$ROOT/scripts/fleet/gh-setup.ts" "$@" ;;
+  sync-repos)   exec bun "$ROOT/scripts/fleet/sync-repos.ts" "$@" ;;
+  bw)           exec bun "$ROOT/scripts/fleet/bw.ts" "$@" ;;
+  env)          exec bun "$ROOT/scripts/fleet/env.ts" "$@" ;;
+  worktrees)    exec bun "$ROOT/scripts/fleet/worktrees.ts" "$@" ;;
+  provision)    exec bun "$ROOT/scripts/fleet/provision.ts" "$@" ;;
+  new-team)     exec bun "$ROOT/scripts/fleet/new.ts" "$@" ;;
+  new-project)  exec bun "$ROOT/scripts/projects/new.ts" "$@" ;;
+  goal)         exec bun "$ROOT/scripts/goal/dispatch.ts" "$@" ;;
+  goals)        exec bun "$ROOT/scripts/goal/list.ts" "$@" ;;
+  projects)     exec bun "$ROOT/scripts/projects/list.ts" "$@" ;;
+  deploy-check) exec bun "$ROOT/scripts/deploy/check.ts" "$@" ;;
+  help|--help|-h)
+    cat <<'EOF'
+cnc — Claude and Conquer: pool VPSes + Claude subscriptions to code at super scale.
+
+fleet
+  cnc teams                          inventory (no network)
+  cnc status  [selector]             reachability, claude auth, disk, active goals
+  cnc accounts [selector]            subscription login state per team
+  cnc usage   [selector] [--days N]  token/cost usage per team (ccusage)
+  cnc ssh <team> [--login]           interactive ssh; --login = human auths Claude
+  cnc bootstrap <team>               install tools + clone repos on a fresh VPS
+  cnc sync-repos [selector] [--deps] [--no-env]  put every repo + its .env on every box (mirror the workspace; --deps also installs)
+  cnc optimize <selector> [--persist] tune boxes for dev: no swap, IO, mitigations, file limits
+  cnc secrets <org>... | --all [--set-creds <org>] [--sync]  render org .env from Bitwarden (MAIN box only)
+  cnc bw <org> [-- <bw args>]        access an org's Bitwarden vault (MAIN box; for Claude sessions)
+  cnc env <team> <org/repo> [--item <name>]  deliver a repo's .env from Bitwarden to a worker
+  cnc env <team> <org> --bashrc --item <name>  install org keys into the worker's ~/.bashrc
+  cnc worktrees <selector> [--clean]  prune (and optionally remove) stale git worktrees on boxes
+  cnc gh-setup <selector> [--key <path>]  copy this machine's ssh key + gh token to boxes
+  cnc provision <selector> [--persist]  one-shot: gh-setup + bootstrap + optimize
+  cnc new-team <id> --host <h> --user <u> --email <e> [--repo org/repo]...  scaffold a team yml
+  cnc new-project <org/repo> [--team t] [--infra org/repo] [--url u]        scaffold a project
+  cnc exec <selector> -- <cmd>       run a command across the fleet
+
+missions
+  cnc goal "<text>" --project <org/repo> [--team id] [--mode claudetm|print]
+  cnc goals                          flight log: every dispatched goal + live state
+  cnc projects                       the registry of what we command
+  cnc deploy-check <org/repo>        verify the work actually SHIPPED
+
+selectors: --all | --pool <p> | --tag <t> | <team-id>...
+EOF
+    ;;
+  *) echo "cnc: unknown command '$cmd' (try: cnc help)" >&2; exit 1 ;;
+esac

@@ -1,0 +1,13 @@
+github: acme/webapp
+# team: gdi-1        # pin a team, or leave unset to auto-assign from pool
+pool: default
+model: claude-fable-5
+verify: bun run verify
+deploy:
+  method: gitops-argocd
+  infra_repo: acme/infrastructure
+  stack: stacks/webapp
+  url: https://webapp.example.com
+  health:
+    - https://webapp.example.com/health
+# linear_team: ACME

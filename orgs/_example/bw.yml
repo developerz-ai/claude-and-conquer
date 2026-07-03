@@ -1,0 +1,12 @@
+# Example org config (NON-SECRET). Copy to orgs/<org>/bw.yml and edit.
+# server URL + account email are identity, not credentials. No passwords/tokens here — ever.
+server: https://vault.acme.example        # the org's Bitwarden / Vaultwarden server
+account: ops@acme.example                 # BW account email (identity, NOT a secret)
+
+# ENV_VAR -> where to read it in the unlocked vault. Item names must match your vault;
+# missing items are skipped (warned), not fatal. field ∈ password|username|uri|notes|totp.
+items:
+  GITHUB_TOKEN:      { item: "github pat",        field: password }
+  ANTHROPIC_API_KEY: { item: "anthropic api key", field: password }
+  # SLACK_BOT_TOKEN:   { item: "slack bot",         field: password }
+  # LINEAR_API_KEY:    { item: "linear api key",    field: password }

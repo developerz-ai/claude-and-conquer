@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+!*.example
+*.secret
+orgs/**/.env
+*.log
+logs/
+.claude/worktrees/
+.claude-task-master/
+.DS_Store

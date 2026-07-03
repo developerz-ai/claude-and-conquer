@@ -1,0 +1,25 @@
+{
+  "name": "claude-and-conquer",
+  "version": "0.1.0",
+  "description": "Command & Control center for a pool of VPSes + Claude subscriptions doing coding at super scale",
+  "type": "module",
+  "bin": {
+    "cnc": "./bin/cnc"
+  },
+  "scripts": {
+    "status": "bun scripts/fleet/status.ts",
+    "accounts": "bun scripts/fleet/accounts.ts",
+    "usage": "bun scripts/fleet/usage.ts",
+    "teams": "bun scripts/fleet/list.ts",
+    "projects": "bun scripts/projects/list.ts",
+    "goals": "bun scripts/goal/list.ts",
+    "verify": "bunx tsc --noEmit"
+  },
+  "engines": {
+    "bun": ">=1.2.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.14",
+    "typescript": "^6.0.3"
+  }
+}

@@ -1,0 +1,18 @@
+# Template — copy to <team-id>.yml and fill in. Files starting with _ are ignored.
+id: gdi-1
+host: gdi-1.infra.example.com
+ssh_user: operator
+# ssh_port: 22
+# wg_ip: 100.64.0.50
+pool: default
+state: provisioning # flip to ready once bootstrapped + claude logged in
+claude:
+  email: agent-gdi-1@example.com
+  subscription: max
+# agent: claude    # coding agent: claude (Anthropic Max, default) or glm (z.ai — needs ZAI_API_KEY on the box)
+# local: true      # set on the main controller box only: cnc runs its commands/goals here directly, no ssh
+workspace: ~/workspace
+repos:
+  - acme/webapp
+tags: [tag:team]
+notes: primary webapp team

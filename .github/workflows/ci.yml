@@ -1,0 +1,30 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - name: typecheck
+        run: bunx tsc --noEmit
+      - name: cnc smoke (offline commands)
+        run: |
+          bin/cnc help
+          bin/cnc teams
+          bin/cnc projects
+          bin/cnc goal 2>&1 | grep -q usage || true
+      - name: yaml inventory parses
+        run: |
+          bun -e '
+          import { loadTeams } from "./scripts/lib/inventory.ts";
+          import { loadProjects } from "./scripts/lib/projects.ts";
+          console.log("teams:", loadTeams().length, "projects:", loadProjects().length);
+          '
