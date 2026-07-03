@@ -1,25 +1,45 @@
 ---
-description: Dispatch a goal to a team VPS for deep, full, autonomous work
+description: Dispatch a goal to a team VPS and drive it to completion (cleanup → start → monitor)
 ---
 
-Dispatch this goal to the right team: $ARGUMENTS
+Dispatch and drive this goal to completion: $ARGUMENTS
 
-You are the flight controller. A goal is a **mission**, not a suggestion — the receiving agent must do deep, full work: 100% complete, tests included, PRs merged, deployed.
+You are the flight controller — **the orchestrator**. A Claude session on the main box (this one, or
+a headless `claude -p '/goal …'`) runs the whole loop: **cleanup → start → monitor**. You build the
+prompt and start the work; the worker VPS just codes (claudetm plans → parallel agents → PRs → merges).
+`cnc goal` starts claudetm on the picked box; its prompt+flags specify the mission and the merge policy.
 
-## Steps
+## 1. Resolve the target project
+If the goal names a project (`org/repo`) use it; otherwise infer from context (`cnc projects` lists the
+registry, `projects/<org>/<repo>/README.md` describes each). If genuinely ambiguous, ask.
 
-1. **Resolve the target project.** If the goal names a project (`org/repo`) use it; otherwise infer from context (`cnc projects` lists the registry, `projects/<org>/<repo>/README.md` describes each). If genuinely ambiguous, ask.
-2. **Enrich the goal text.** The prompt is for the *coding agent* — put the WORK in it, not the merge policy (merging is claudetm's job, set by flags below — a "merge the PRs" sentence in the prompt does nothing). Append these depth-forcing standing orders:
-   - "Use parallel agents (worktrees) for independent parts."
-   - "Run the project's verify gate before every PR; open focused PRs."
-   - "Do not stop at 80% — finish the feature completely, add missing unit/integration tests, fix bugs you find on the way."
-   - "Address every review comment (CI + CodeRabbit) before a PR is done."
-3. **Dispatch:** `bin/cnc goal "<enriched goal>" --project <org/repo>`. Default mode `claudetm`. **Merge policy is a flag, not prose:** by default cnc passes `--no-auto-merge`, so claudetm holds each PR at `ready_to_merge` until CI is green **and** review comments are resolved. Add `--auto-merge` only when you explicitly want CI-green-merges that skip review resolution. Use `--mode print` for quick read-only jobs.
-4. **Report** the team, tmux session, and watch/log commands that dispatch prints.
-5. **Follow through — this is the orchestrator's job, not the worker's:**
-   - Track progress in the background: `cnc goals` (flight log) and `cnc status` (per-box, incl. the local `main` team).
-   - When it finishes, **verify it truly shipped**: `cnc deploy-check <org/repo>` — merged ≠ done.
-   - **.envs are yours:** if the worker's repo needs secrets, deliver them from Bitwarden (main box) → `cnc env <team> <org/repo>`.
-   - **Tidy up:** `cnc worktrees <team> --clean` to prune the git worktrees claudetm/parallel agents leave behind.
+## 2. Cleanup first
+- `cnc worktrees <team> --clean` — prune stale git worktrees claudetm/parallel agents leave behind.
+- (Dispatch also runs `claudetm clean -f` before `start`, so leftover task state never blocks a fresh run.)
 
-Note on routing: every box mirrors the whole workspace, so `cnc goal` **round-robins by state/load** — it picks the idlest ready box across the fleet and pre-flights its usage (`--team`/`--pool` override). The main controller box is also a worker (runs locally). Right before handoff, dispatch makes sure the stuff is there — clones the repo if missing and delivers its `.env` from Bitwarden — so the agent just codes. GLM boxes (`agent: glm`) run claudetm/claude against z.ai automatically.
+## 3. Build the prompt & start
+The prompt is for the **coding agent** — put the WORK in it, not the merge mechanics (merging is a flag,
+below). Append these depth-forcing standing orders:
+- "Use parallel agents (worktrees) for independent parts."
+- "Run the project's verify gate before every PR; open focused PRs."
+- "Do not stop at 80% — finish completely, add missing unit/integration tests, fix bugs on the way."
+- "Address every review comment (CI + CodeRabbit) before a PR is done."
+
+Then: `bin/cnc goal "<enriched goal>" --project <org/repo>`. **Auto-merge is the default** — PRs merge
+automatically once CI is green. Add `--no-auto-merge` **only if the operator says so** (holds each PR
+until CI + review comments are resolved). `--mode print` for quick read-only jobs. Report the team,
+tmux session, and watch/log commands it prints.
+
+## 4. Monitor to completion — this is the orchestrator's job, not the worker's
+- Track in the background: `cnc goals` (flight log) + `cnc status` (per-box) + tail the log.
+- If it stalls or errors, diagnose from the log; `cnc stop <team>` and re-dispatch if it's wedged.
+- When it finishes, **verify it truly shipped**: `cnc deploy-check <org/repo>` — merged ≠ done.
+
+## 5. Wrap up
+- **.envs are yours:** if the worker's repo needs secrets, `cnc env <team> <org/repo>` (from Bitwarden on main).
+- Tidy any remaining worktrees: `cnc worktrees <team> --clean`.
+
+Routing: every box mirrors the whole workspace, so `cnc goal` **round-robins by state/load** — idlest
+ready box across the fleet, usage pre-flighted (`--team`/`--pool` override). The main box is also a
+worker. Right before handoff, dispatch makes sure the stuff is there (clone if missing + deliver `.env`).
+GLM boxes (`agent: glm`) run claudetm/claude against z.ai automatically.

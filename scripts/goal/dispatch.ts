@@ -116,11 +116,11 @@ const effModel = glm ? "opus" : model; // glm: --model opus resolves via ANTHROP
 const inner =
   mode === "print"
     ? `claude -p "$(cat "${goalFile}")" --model ${effModel} --fallback-model opus --dangerously-skip-permissions --output-format json`
-    // Default: NO --auto-merge. claudetm's own merge cycle then holds each PR at ready_to_merge
-    // until CI is green AND review comments (CodeRabbit etc.) are resolved — the whole point of the
-    // goal. `--auto-merge` short-circuits that with `gh pr merge --auto`, which merges on CI-green
-    // alone and ignores CHANGES_REQUESTED. Opt back in with `cnc goal … --auto-merge` for speed.
-    : `claudetm start "$(cat "${goalFile}")" ${argv.includes("--auto-merge") ? "--auto-merge" : "--no-auto-merge"} --verify`;
+    // Default: --auto-merge (PRs merge automatically once CI is green). `claudetm clean -f` first
+    // clears any stale .claude-task-master/ state so `start` never errors "Task already exists"
+    // after a prior run/stop. Pass `cnc goal … --no-auto-merge` to instead hold each PR until CI +
+    // review comments (CodeRabbit) are resolved.
+    : `claudetm clean -f >/dev/null 2>&1 || true; claudetm start "$(cat "${goalFile}")" ${argv.includes("--no-auto-merge") ? "--no-auto-merge" : "--auto-merge"} --verify`;
 
 const runner = [
   `#!/usr/bin/env bash`,
