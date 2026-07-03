@@ -25,7 +25,10 @@ if (!goal || !projectArg) {
 }
 
 const project = findProject(projectArg);
-const mode = argAfter(argv, "--mode") ?? "claudetm";
+// Default `pr`: claude -p does the work + opens ONE PR, then `claudetm merge-pr` merges it (fix CI +
+// review comments). `claudetm` = the heavy multi-task planner (opt in: --mode claudetm). `print` =
+// quick one-shot, no PR/merge.
+const mode = argAfter(argv, "--mode") ?? "pr";
 const model = argAfter(argv, "--model") ?? project.model ?? "claude-fable-5";
 
 // Team resolution: the orchestrator picks the box. Every box mirrors the whole workspace
@@ -117,13 +120,16 @@ const glm = (team.agent ?? "claude") === "glm";
 const effModel = glm ? "opus" : model; // glm: --model opus resolves via ANTHROPIC_DEFAULT_OPUS_MODEL (glm-5.2)
 const inner =
   mode === "print"
+    // quick one-shot: run and emit JSON, no PR/merge
     ? `claude -p "$(cat "${goalFile}")" --model ${effModel} --fallback-model opus --dangerously-skip-permissions --output-format json`
-    // Default: claudetm's merge-pr cycle — for each PR it waits for CI, FIXES failures + review
-    // comments (CodeRabbit), then merges. This is the auto-merge you want. `claudetm clean -f` first
-    // clears stale .claude-task-master/ state so `start` never errors "Task already exists".
-    // `cnc goal … --auto-merge` opts into the DUMB fast path (`gh pr merge --auto`: merge on
-    // CI-green, skip review comments) — the one that merges PRs with unresolved review threads.
-    : `claudetm clean -f >/dev/null 2>&1 || true; claudetm start "$(cat "${goalFile}")" ${argv.includes("--auto-merge") ? "--auto-merge" : "--no-auto-merge"} --verify`;
+    : mode === "claudetm"
+      // opt-in heavy planner: claudetm plans → parallel agents → PRs → merges (single repo).
+      // clean -f first clears stale state so `start` never errors "Task already exists".
+      ? `claudetm clean -f >/dev/null 2>&1 || true; claudetm start "$(cat "${goalFile}")" ${argv.includes("--auto-merge") ? "--auto-merge" : "--no-auto-merge"} --verify`
+      // DEFAULT `pr`: claude -p is the AI developer — does the work (across repos if needed; every
+      // repo is mirrored under ~/workspace), opens focused PR(s), and merges each with
+      // `claudetm merge-pr` (fix CI + review comments) per the mission template.
+      : `claude -p "$(cat "${goalFile}")" --model ${effModel} --fallback-model opus --dangerously-skip-permissions`;
 
 const runner = [
   `#!/usr/bin/env bash`,

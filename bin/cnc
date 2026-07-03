@@ -54,9 +54,11 @@ fleet
   cnc exec <selector> -- <cmd>       run a command across the fleet
 
 missions
-  cnc goal "<text>" --project <org/repo> [--team id] [--mode claudetm|print] [--auto-merge]
-       default: claudetm merge-pr cycle per PR (fix CI + review comments, then merge)
-       --auto-merge: dumb fast path (gh merge on CI-green, skips review comments)
+  cnc goal "<text>" --project <org/repo> [--team id] [--mode pr|claudetm|print]
+       default (pr): claude -p AI developer — does the work (multi-repo ok), opens PR(s),
+                     merges each via `claudetm merge-pr` (fix CI + review comments, then merge)
+       --mode claudetm: heavy claudetm start planner (single repo); --auto-merge = dumb gh merge
+       --mode print:    quick one-shot, no PR
   cnc goals                          flight log: every dispatched goal + live state
   cnc stop <team> [<slug>] [--all]   kill a running goal on a box (marks the flight log stopped)
   cnc logs <team> [<slug>] [-f]      tail a goal's run log on a box (-f to stream live)
