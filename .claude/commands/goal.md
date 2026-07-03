@@ -25,10 +25,11 @@ below). Append these depth-forcing standing orders:
 - "Do not stop at 80% — finish completely, add missing unit/integration tests, fix bugs on the way."
 - "Address every review comment (CI + CodeRabbit) before a PR is done."
 
-Then: `bin/cnc goal "<enriched goal>" --project <org/repo>`. **Auto-merge is the default** — PRs merge
-automatically once CI is green. Add `--no-auto-merge` **only if the operator says so** (holds each PR
-until CI + review comments are resolved). `--mode print` for quick read-only jobs. Report the team,
-tmux session, and watch/log commands it prints.
+Then: `bin/cnc goal "<enriched goal>" --project <org/repo>`. **Default = the `claudetm merge-pr` cycle
+per PR**: wait for CI, fix failures + review comments (CodeRabbit), *then* merge — i.e. auto-merge that
+resolves comments first. Add `--auto-merge` only to opt into the dumb fast path (`gh` merge on CI-green,
+skips review comments). `--mode print` for quick read-only jobs. Report
+the team, tmux session, and watch/log commands it prints.
 
 ## 4. Monitor to completion — this is the orchestrator's job, not the worker's
 - Track in the background: `cnc goals` (flight log) + `cnc status` (per-box) + tail the log.

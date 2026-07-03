@@ -26,6 +26,7 @@ case "$cmd" in
   goal)         exec bun "$ROOT/scripts/goal/dispatch.ts" "$@" ;;
   goals)        exec bun "$ROOT/scripts/goal/list.ts" "$@" ;;
   stop)         exec bun "$ROOT/scripts/goal/stop.ts" "$@" ;;
+  logs)         exec bun "$ROOT/scripts/goal/logs.ts" "$@" ;;
   projects)     exec bun "$ROOT/scripts/projects/list.ts" "$@" ;;
   deploy-check) exec bun "$ROOT/scripts/deploy/check.ts" "$@" ;;
   help|--help|-h)
@@ -54,8 +55,11 @@ fleet
 
 missions
   cnc goal "<text>" --project <org/repo> [--team id] [--mode claudetm|print] [--auto-merge]
+       default: claudetm merge-pr cycle per PR (fix CI + review comments, then merge)
+       --auto-merge: dumb fast path (gh merge on CI-green, skips review comments)
   cnc goals                          flight log: every dispatched goal + live state
   cnc stop <team> [<slug>] [--all]   kill a running goal on a box (marks the flight log stopped)
+  cnc logs <team> [<slug>] [-f]      tail a goal's run log on a box (-f to stream live)
   cnc projects                       the registry of what we command
   cnc deploy-check <org/repo>        verify the work actually SHIPPED
 
