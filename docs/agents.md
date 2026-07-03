@@ -46,8 +46,20 @@ Same recipe — a box can be configured with Codex or any other CLI agent:
 2. Put the cred in `~/.cnc/agents.env` on the box(es) that should run it (chmod 600).
 3. Re-run `cnc bootstrap <team>` (or push `agents.sh`) so the alias lands.
 
-## Direction
+## The two goal flows
 
-Today the agent is chosen by which alias a session uses. A natural next step: let `cnc goal` pick
-the **agent per mission** (e.g. cheap GLM for mechanical passes, Claude for the hard reasoning),
-the same way it already picks the box by free-ness + usage headroom.
+`cnc goal` has two modes (see `.claude/commands/goal.md`):
+- **`pr` (default)** — a single `claude -p` **AI developer**: does the work (multi-repo aware, since
+  every repo is mirrored under `~/workspace`), opens focused PR(s), merges each with `claudetm merge-pr`.
+  **Sequential** — one agent, no worktree parallelism (it *can* spawn `Task` sub-agents but usually won't).
+- **`claudetm` (`--mode claudetm`)** — the `claudetm start` planner: **parallel agents in worktrees**,
+  many PRs, structured. Better for wide PR-farming on one repo.
+
+## Direction / future
+
+- **Parallel agents for the `pr` flow.** The AI developer is sequential today. Give it real
+  parallelism — either instruct it to fan out via the `Task` tool for independent parts, or have
+  `cnc goal` dispatch **several `claude -p` developers** across boxes, each owning a slice, then
+  reconcile. (Flagged by the operator — the sequential single-agent `pr` flow is the current limit.)
+- **Agent per mission.** Let `cnc goal` pick the agent (cheap GLM for mechanical passes, Claude for
+  hard reasoning) the way it already picks the box by free-ness + usage headroom.
