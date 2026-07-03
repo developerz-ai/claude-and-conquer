@@ -25,6 +25,7 @@ case "$cmd" in
   new-project)  exec bun "$ROOT/scripts/projects/new.ts" "$@" ;;
   goal)         exec bun "$ROOT/scripts/goal/dispatch.ts" "$@" ;;
   goals)        exec bun "$ROOT/scripts/goal/list.ts" "$@" ;;
+  stop)         exec bun "$ROOT/scripts/goal/stop.ts" "$@" ;;
   projects)     exec bun "$ROOT/scripts/projects/list.ts" "$@" ;;
   deploy-check) exec bun "$ROOT/scripts/deploy/check.ts" "$@" ;;
   help|--help|-h)
@@ -39,7 +40,7 @@ fleet
   cnc ssh <team> [--login]           interactive ssh; --login = human auths Claude
   cnc bootstrap <team>               install tools + clone repos on a fresh VPS
   cnc sync-repos [selector] [--deps] [--no-env]  put every repo + its .env on every box (mirror the workspace; --deps also installs)
-  cnc optimize <selector> [--persist] tune boxes for dev: no swap, IO, mitigations, file limits
+  cnc optimize <selector> [--persist] [--no-firewall]  tune boxes for dev + ufw lock to SSH-only
   cnc secrets <org>... | --all [--set-creds <org>] [--sync]  render org .env from Bitwarden (MAIN box only)
   cnc bw <org> [-- <bw args>]        access an org's Bitwarden vault (MAIN box; for Claude sessions)
   cnc env <team> <org/repo> [--item <name>]  deliver a repo's .env from Bitwarden to a worker
@@ -52,8 +53,9 @@ fleet
   cnc exec <selector> -- <cmd>       run a command across the fleet
 
 missions
-  cnc goal "<text>" --project <org/repo> [--team id] [--mode claudetm|print]
+  cnc goal "<text>" --project <org/repo> [--team id] [--mode claudetm|print] [--auto-merge]
   cnc goals                          flight log: every dispatched goal + live state
+  cnc stop <team> [<slug>] [--all]   kill a running goal on a box (marks the flight log stopped)
   cnc projects                       the registry of what we command
   cnc deploy-check <org/repo>        verify the work actually SHIPPED
 

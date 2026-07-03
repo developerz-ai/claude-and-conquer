@@ -3,8 +3,8 @@
 // Flight-controller dispatch: route a goal to the owning team's VPS and start
 // autonomous work there inside a tmux session, so it survives our disconnect.
 //
-// mode=claudetm (default): claudetm start "<goal>" — plans, opens PRs, merges
-//   each PR sequentially via its merge-pr cycle, optionally verifies release.
+// mode=claudetm (default): claudetm start "<goal>" — plans, opens PRs, and runs its merge-pr
+//   cycle that resolves CI + review comments BEFORE merging each PR (no --auto-merge unless asked).
 // mode=print: one-shot `claude -p` with --model fable for quick jobs that
 //   don't need the PR machinery.
 import { findTeam, activeTeams, argAfter } from "../lib/inventory.ts";
@@ -116,7 +116,11 @@ const effModel = glm ? "opus" : model; // glm: --model opus resolves via ANTHROP
 const inner =
   mode === "print"
     ? `claude -p "$(cat "${goalFile}")" --model ${effModel} --fallback-model opus --dangerously-skip-permissions --output-format json`
-    : `claudetm start "$(cat "${goalFile}")" --auto-merge --verify`;
+    // Default: NO --auto-merge. claudetm's own merge cycle then holds each PR at ready_to_merge
+    // until CI is green AND review comments (CodeRabbit etc.) are resolved — the whole point of the
+    // goal. `--auto-merge` short-circuits that with `gh pr merge --auto`, which merges on CI-green
+    // alone and ignores CHANGES_REQUESTED. Opt back in with `cnc goal … --auto-merge` for speed.
+    : `claudetm start "$(cat "${goalFile}")" ${argv.includes("--auto-merge") ? "--auto-merge" : "--no-auto-merge"} --verify`;
 
 const runner = [
   `#!/usr/bin/env bash`,

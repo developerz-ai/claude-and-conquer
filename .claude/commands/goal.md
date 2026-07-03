@@ -9,12 +9,12 @@ You are the flight controller. A goal is a **mission**, not a suggestion — the
 ## Steps
 
 1. **Resolve the target project.** If the goal names a project (`org/repo`) use it; otherwise infer from context (`cnc projects` lists the registry, `projects/<org>/<repo>/README.md` describes each). If genuinely ambiguous, ask.
-2. **Enrich the goal text.** Dispatch the goal with these standing orders appended (they force depth):
+2. **Enrich the goal text.** The prompt is for the *coding agent* — put the WORK in it, not the merge policy (merging is claudetm's job, set by flags below — a "merge the PRs" sentence in the prompt does nothing). Append these depth-forcing standing orders:
    - "Use parallel agents (worktrees) for independent parts."
-   - "Open focused PRs; merge each PR sequentially with `claudetm merge-pr` — fix CI and review comments until green."
-   - "Run the project's verify gate before every PR."
+   - "Run the project's verify gate before every PR; open focused PRs."
    - "Do not stop at 80% — finish the feature completely, add missing unit/integration tests, fix bugs you find on the way."
-3. **Dispatch:** `bin/cnc goal "<enriched goal>" --project <org/repo>`. Default mode `claudetm` (plans, PRs, merges). Use `--mode print` only for quick read-only jobs.
+   - "Address every review comment (CI + CodeRabbit) before a PR is done."
+3. **Dispatch:** `bin/cnc goal "<enriched goal>" --project <org/repo>`. Default mode `claudetm`. **Merge policy is a flag, not prose:** by default cnc passes `--no-auto-merge`, so claudetm holds each PR at `ready_to_merge` until CI is green **and** review comments are resolved. Add `--auto-merge` only when you explicitly want CI-green-merges that skip review resolution. Use `--mode print` for quick read-only jobs.
 4. **Report** the team, tmux session, and watch/log commands that dispatch prints.
 5. **Follow through — this is the orchestrator's job, not the worker's:**
    - Track progress in the background: `cnc goals` (flight log) and `cnc status` (per-box, incl. the local `main` team).

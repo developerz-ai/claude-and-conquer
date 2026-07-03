@@ -16,8 +16,9 @@ import { c, fail } from "../lib/cli.ts";
 
 const argv = process.argv.slice(2);
 const persist = argv.includes("--persist");
-const sel = argv.filter((a) => a !== "--persist");
-if (sel.length === 0) fail("usage: cnc optimize [--all | --pool <p> | <team>...] [--persist]");
+const firewall = !argv.includes("--no-firewall"); // ufw is on by default; --no-firewall to skip
+const sel = argv.filter((a) => a !== "--persist" && a !== "--no-firewall");
+if (sel.length === 0) fail("usage: cnc optimize [--all | --pool <p> | <team>...] [--persist] [--no-firewall]");
 const teams = selectTeams(sel);
 
 // Runtime + drop-in tunings (safe, reversible, no reboot).
@@ -55,6 +56,16 @@ if ! grep -q 'mitigations=off' /etc/default/grub; then
 fi
 echo "persistent changes written (fstab + grub) — reboot to apply mitigations=off"`;
 
+// UFW: lock the box down to SSH-only inbound. The allow-ssh rule is added BEFORE `ufw enable`,
+// and enabling never drops the established connection, so this can't lock us out.
+const FIREWALL = (port: number) => String.raw`set -e
+if ! command -v ufw >/dev/null 2>&1; then sudo apt-get update -qq && sudo apt-get install -y -qq ufw; fi
+sudo ufw allow ${port}/tcp >/dev/null      # SSH first — before enabling
+sudo ufw default deny incoming >/dev/null
+sudo ufw default allow outgoing >/dev/null
+sudo ufw --force enable >/dev/null
+echo "ufw: only ${port}/tcp inbound, all else denied"`;
+
 console.log(c.bold(`optimizing for dev: ${teams.map((t) => t.id).join(", ")}${persist ? c.yellow("  [--persist: reboot needed]") : ""}`));
 await mapTeams(teams, async (t) => {
   const r = await sshExec(t, RUNTIME, { timeoutMs: 300_000 });
@@ -62,6 +73,12 @@ await mapTeams(teams, async (t) => {
   if (persist) {
     const p = await sshExec(t, PERSIST, { timeoutMs: 300_000 });
     console.log(`${p.code === 0 ? c.yellow("⟳") : c.red("✗")} ${t.id} persist  ${c.dim((p.stdout || p.stderr).trim().split("\n").pop() ?? "")}`);
+  }
+  if (firewall) {
+    const port = t.ssh_port ?? 22;
+    const f = await sshExec(t, FIREWALL(port), { timeoutMs: 180_000 });
+    console.log(`${f.code === 0 ? c.green("✓") : c.red("✗")} ${t.id} ufw      ${c.dim((f.stdout || f.stderr).trim().split("\n").pop() ?? "")}`);
+    if (t.wg_ip) console.log(c.yellow(`  ! ${t.id} has wg_ip — WireGuard's UDP port is now blocked inbound; add it: cnc exec ${t.id} -- sudo ufw allow <wg-port>/udp`));
   }
 });
 if (persist) console.log(c.dim("\nreboot the boxes to activate mitigations=off:  cnc exec <sel> -- sudo reboot"));
