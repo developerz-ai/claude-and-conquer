@@ -116,7 +116,7 @@ Selectors: `--all` · `--pool <p>` · `--tag <t>` · `<team-id>…`
 | `bin/cnc` | the CLI (Bun, zero deps) |
 | `scripts/` | `fleet/` `goal/` `projects/` `deploy/` + `lib/` |
 | `.claude/` | `/goal` `/setup` commands + fleet/missions skills |
-| `docs/` | [architecture](docs/architecture.md) · [operations](docs/operations.md) · [economics](docs/economics.md) · [onboarding](docs/onboarding.md) · [secrets](docs/secrets.md) · [agents](docs/agents.md) |
+| `docs/` | [**flows**](docs/flows.md) (how `/goal` runs) · [architecture](docs/architecture.md) · [operations](docs/operations.md) · [economics](docs/economics.md) · [onboarding](docs/onboarding.md) · [secrets](docs/secrets.md) · [agents](docs/agents.md) |
 
 ## Principles
 

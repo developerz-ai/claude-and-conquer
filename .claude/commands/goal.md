@@ -8,13 +8,22 @@ You are the flight controller — **the orchestrator**. A Claude session on the 
 headless `claude -p '/goal …'`) runs the whole loop: **cleanup → start → monitor**. You pick the box,
 build the mission, start the work, and watch it ship.
 
-**Two flows — pick by how the operator phrases it:**
-- *"let's do this work on org/repo …"* → **default (`pr`)**: dispatch a `claude -p` **AI developer** that
-  does the work (across repos if needed — all are mirrored under `~/workspace`), opens focused PR(s), and
-  merges each with `claudetm merge-pr` (fix CI + review comments). This is the everyday flow — often the
-  best-quality one, and the only one that spans multiple repos. → `cnc goal "<work>" --project org/repo`
-- *"let's use claudetm on org/repo …"* → **`--mode claudetm`**: the heavy `claudetm start` planner
-  (plans → parallel agents → many PRs → merges, single repo). → `cnc goal "<work>" --project org/repo --mode claudetm`
+**Two flows. Default to the AI developer. Be smart about which the operator means:**
+
+- **Default → `pr`: a `claude -p` AI developer.** This is almost always it. The operator's message **is
+  the prompt** — the exact instruction they'd type if they ran `claude` by hand. **Pass it through as the
+  mission, verbatim.** If it says *"use parallel agents, use `claudetm merge-pr` to merge each PR,
+  deploy to ../infrastructure, 100%"* — that's **instructions to the developer, NOT a mode switch.** The
+  `claude -p` developer reads it and does exactly that (spawns `Task` sub-agents for parallel parts, runs
+  `claudetm merge-pr` to merge). → `cnc goal "<their prompt>" --project org/repo`
+- **`--mode claudetm` ONLY on an explicit meta-request for the planner** — the operator telling *you* to
+  use it: *"use claudetm **start**"*, *"plan this with claudetm"*, *"use the claudetm planner"*. Note:
+  **"use claudetm merge-pr" is NOT this** — that's the default flow's own merge step. Don't confuse a
+  prompt that mentions claudetm with a request to run the planner. → `--mode claudetm`
+
+> The trap (learned the hard way): the operator copies their manual `claude` invocation — which mentions
+> `claudetm merge-pr` and parallel agents — as the goal. That is a **work prompt for `claude -p`**, not a
+> switch to `claudetm start`. When unsure, it's the default `pr` flow.
 
 ## 1. Resolve the target project
 If the goal names a project (`org/repo`) use it; otherwise infer from context (`cnc projects` lists the
@@ -24,16 +33,16 @@ registry, `projects/<org>/<repo>/README.md` describes each). If genuinely ambigu
 - `cnc worktrees <team> --clean` — prune stale git worktrees claudetm/parallel agents leave behind.
 - (Dispatch also runs `claudetm clean -f` before `start`, so leftover task state never blocks a fresh run.)
 
-## 3. Build the prompt & start
-Write the goal as just the **WORK** to do — you don't re-type the standing orders. `cnc goal` renders
-the project's `goal-template.md` (or the shared `projects/_goal-template.md`) around your text, which
-bakes in the standing orders: depth/100%, parallel worktree agents, the verify gate, the **merge-pr
-cycle**, and ship-to-`{{infra_repo}}`. Only add project-specific notes the template doesn't cover.
+## 3. Start
+**Pass the operator's instruction through as the prompt — don't rewrite it.** `cnc goal` renders the
+project's `goal-template.md` (or the shared `projects/_goal-template.md`) *around* it, adding the
+standing orders (depth/100%, parallel where independent, verify gate, `claudetm merge-pr` merges,
+ship-to-`{{infra_repo}}`). The operator's exact words go in as `{{goal}}`.
 
-Then: `bin/cnc goal "<goal>" --project <org/repo>` (add `--mode claudetm` for the planner flow). The
-default AI-developer flow merges each PR via `claudetm merge-pr` (fix CI + review comments, then merge);
-in `--mode claudetm`, `--auto-merge` opts into the dumb fast path (`gh` merge on CI-green, skips
-comments). `--mode print` for quick read-only jobs. Report the team, session, and watch/log commands.
+Then: `bin/cnc goal "<their prompt>" --project <org/repo>`. Merge policy for the default flow **is not a
+flag** — the developer merges each PR with `claudetm merge-pr` per the mission. `--mode claudetm` only
+for the explicit planner request (there `--auto-merge` = dumb `gh` CI-green merge; default is the fixing
+merge-pr cycle). `--mode print` for quick read-only jobs. Report the team, session, and watch/log commands.
 
 ## 4. Monitor to completion — this is the orchestrator's job, not the worker's
 - Track in the background: `cnc goals` (flight log) + `cnc status` (per-box) + tail the log.
