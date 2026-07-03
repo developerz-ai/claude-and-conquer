@@ -18,18 +18,15 @@ registry, `projects/<org>/<repo>/README.md` describes each). If genuinely ambigu
 - (Dispatch also runs `claudetm clean -f` before `start`, so leftover task state never blocks a fresh run.)
 
 ## 3. Build the prompt & start
-The prompt is for the **coding agent** — put the WORK in it, not the merge mechanics (merging is a flag,
-below). Append these depth-forcing standing orders:
-- "Use parallel agents (worktrees) for independent parts."
-- "Run the project's verify gate before every PR; open focused PRs."
-- "Do not stop at 80% — finish completely, add missing unit/integration tests, fix bugs on the way."
-- "Address every review comment (CI + CodeRabbit) before a PR is done."
+Write the goal as just the **WORK** to do — you don't re-type the standing orders. `cnc goal` renders
+the project's `goal-template.md` (or the shared `projects/_goal-template.md`) around your text, which
+bakes in the standing orders: depth/100%, parallel worktree agents, the verify gate, the **merge-pr
+cycle**, and ship-to-`{{infra_repo}}`. Only add project-specific notes the template doesn't cover.
 
-Then: `bin/cnc goal "<enriched goal>" --project <org/repo>`. **Default = the `claudetm merge-pr` cycle
-per PR**: wait for CI, fix failures + review comments (CodeRabbit), *then* merge — i.e. auto-merge that
-resolves comments first. Add `--auto-merge` only to opt into the dumb fast path (`gh` merge on CI-green,
-skips review comments). `--mode print` for quick read-only jobs. Report
-the team, tmux session, and watch/log commands it prints.
+Then: `bin/cnc goal "<goal>" --project <org/repo>`. **Default = the `claudetm merge-pr` cycle per PR**:
+wait for CI, fix failures + review comments (CodeRabbit), *then* merge — auto-merge that resolves
+comments first. `--auto-merge` opts into the dumb fast path (`gh` merge on CI-green, skips comments).
+`--mode print` for quick read-only jobs. Report the team, session, and watch/log commands it prints.
 
 ## 4. Monitor to completion — this is the orchestrator's job, not the worker's
 - Track in the background: `cnc goals` (flight log) + `cnc status` (per-box) + tail the log.

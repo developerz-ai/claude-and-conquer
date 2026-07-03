@@ -65,3 +65,26 @@ export function findProject(orgRepo: string): Project {
 export function remotePath(p: Project, workspace = "~/workspace"): string {
   return p.path ?? `${workspace}/${p.org}/${p.repo}`;
 }
+
+// Render the mission a worker actually receives: the project's goal-template (or the shared default)
+// with the goal text + project fields substituted. Templates carry the standing orders (merge-pr
+// cycle, verify gate, ship-to-infra) so they're versioned data, not prose re-typed each dispatch.
+export function renderMission(p: Project, goal: string): string {
+  const override = join(REPO_ROOT, p.dir, "goal-template.md");
+  const fallback = join(REPO_ROOT, "projects", "_goal-template.md");
+  const tplPath = existsSync(override) ? override : fallback;
+  if (!existsSync(tplPath)) return goal; // no template at all — send the raw goal
+  const subs: Record<string, string> = {
+    goal,
+    org: p.org,
+    repo: p.repo,
+    verify: p.verify ?? "the verify gate",
+    infra_repo: p.deploy?.infra_repo ?? "../infrastructure",
+    deploy_stack: p.deploy?.stack ?? "(see project.yml)",
+    deploy_url: p.deploy?.url ?? "",
+  };
+  return readFileSync(tplPath, "utf8")
+    .replace(/^<!--[\s\S]*?-->\n?/, "") // strip the leading how-to comment
+    .replace(/\{\{(\w+)\}\}/g, (_, k) => subs[k] ?? `{{${k}}}`)
+    .trim();
+}

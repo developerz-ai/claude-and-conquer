@@ -7,6 +7,7 @@ One directory per repo: `projects/<org>/<repo>/`. Load through `scripts/lib/proj
 | `README.md` | **concise English** description: what the project is, stack, key features, where it's deployed. This is what agents and humans read first — keep it tight and current. |
 | `project.yml` | machine-readable descriptor (schema below) |
 | `goals/` | dispatched-goal records (`<date>-<slug>.yml`, written by `cnc goal`) + optional `backlog.md` of goals to run next |
+| `goal-template.md` | **optional** per-project mission template. `cnc goal` renders it (or the shared `projects/_goal-template.md`) around your goal text, so every mission carries the same standing orders — merge-pr cycle, verify gate, ship-to-infra. Placeholders: `{{goal}}` `{{org}}` `{{repo}}` `{{verify}}` `{{infra_repo}}` `{{deploy_stack}}` `{{deploy_url}}`. |
 
 ## project.yml schema
 

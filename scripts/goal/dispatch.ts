@@ -8,7 +8,7 @@
 // mode=print: one-shot `claude -p` with --model fable for quick jobs that
 //   don't need the PR machinery.
 import { findTeam, activeTeams, argAfter } from "../lib/inventory.ts";
-import { findProject, remotePath } from "../lib/projects.ts";
+import { findProject, remotePath, renderMission } from "../lib/projects.ts";
 import { prepareRepo } from "../lib/prepare.ts";
 import { sshExec } from "../lib/ssh.ts";
 import { activeBlock, BURN_LIMIT } from "../lib/usage.ts";
@@ -91,8 +91,10 @@ const logFile = `~/.cnc/logs/${stamp}-${slug}.log`;
 // tmux executes the script directly; the script owns cd/log/tee.
 const goalFile = `$HOME/.cnc/goals/${stamp}-${slug}.txt`;
 const runFile = `$HOME/.cnc/run/${stamp}-${slug}.sh`;
+// The worker receives the rendered mission: the project's goal-template (or the shared default)
+// with the goal text + standing orders (merge-pr cycle, verify gate, ship-to-infra) baked in.
 await sshExec(team, `mkdir -p ~/.cnc/goals ~/.cnc/logs ~/.cnc/run && cat > "${goalFile}"`, {
-  stdin: goal,
+  stdin: renderMission(project, goal),
 });
 
 // Make sure the stuff is there before handing off — code cloned + .env (secrets) delivered.
