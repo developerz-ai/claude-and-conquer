@@ -38,3 +38,7 @@ Selectors: `--all` | `--pool <p>` | `--tag <t>` | team ids.
 - New team: copy `fleet/teams/_example.yml`, follow the checklist in `fleet/CLAUDE.md`, confirm with `cnc status <id>`.
 - New project: `projects/<org>/<repo>/{README.md,project.yml}`, confirm with `cnc projects`.
 - This repo is shared by multiple operators — keep every yml and doc current; the fleet is only as good as its inventory.
+
+## Note
+
+Do not use git worktrees — work directly in this checkout. See `.claude/commands/feature.md` and `.claude/commands/planx.md`.
