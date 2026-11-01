@@ -16,6 +16,14 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: typecheck
         run: bunx tsc --noEmit
+      # The typecheck above only proves the files in the program compile; it does not
+      # prove WHICH files are in it. Pin the program membership: drop
+      # fleet/box/bw-sync.ts from tsconfig include and this step goes red.
+      - name: typecheck program includes on-box script
+        run: |
+          bunx tsc --noEmit --listFiles > /tmp/tsc-files.txt
+          grep -q 'fleet/box/bw-sync.ts' /tmp/tsc-files.txt
+          grep -q 'scripts/lib/inventory.ts' /tmp/tsc-files.txt
       - name: cnc smoke (offline commands)
         run: |
           bin/cnc help
