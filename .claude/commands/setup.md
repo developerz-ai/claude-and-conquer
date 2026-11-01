@@ -41,7 +41,7 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
    argv/repo, pass via env (they land in a 600 file on the box only):
    ```
    CNC_BW_CLIENTID=user.xxx CNC_BW_CLIENTSECRET=yyy CNC_BW_PASSWORD=… \
-     cnc secrets <org> --set-password <org> --sync
+     cnc secrets <org> --set-creds <org> --sync      # --set-password <org> is an exact alias
    ```
    The credential command takes an **org** (not a team id), and `--set-password` is an exact alias
    of `--set-creds` — same org, same env vars, same file, same exit code.
