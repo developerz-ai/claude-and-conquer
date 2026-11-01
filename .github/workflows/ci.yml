@@ -8,11 +8,18 @@ jobs:
   verify:
     # GitHub-hosted runner (org rule: private repos on Ubicloud, public on GitHub-hosted).
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        bun: ["1.2.21", "latest"]
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # Bun v1.2.21 (2025-08-25) is the first release exposing Bun.YAML.parse —
+          # https://bun.sh/blog/bun-v1.2.21 ("Native YAML support"). 1.2.21 is the
+          # declared minimum (package.json engines.bun); "latest" guards the future.
+          bun-version: ${{ matrix.bun }}
       - run: bun install --frozen-lockfile
       - name: typecheck
         run: bunx tsc --noEmit
@@ -25,7 +32,36 @@ jobs:
       - name: yaml inventory parses
         run: |
           bun -e '
+          import { readFileSync } from "node:fs";
           import { loadTeams } from "./scripts/lib/inventory.ts";
           import { loadProjects } from "./scripts/lib/projects.ts";
+
+          // guards as helpers: a stub input can prove each one refuses.
+          function requireYamlApi(api) {
+            if (typeof api?.parse !== "function") throw new Error("Bun.YAML.parse missing - Bun >= 1.2.21 required");
+            return (text) => api.parse(text);
+          }
+          function parseYamlObject(api, text, label) {
+            const doc = requireYamlApi(api)(text);
+            if (!doc || typeof doc !== "object") throw new Error("no YAML object parsed from " + label);
+            return doc;
+          }
+          function refuses(label, fn, expected) {
+            let err;
+            try { fn(); } catch (e) { err = e; }
+            if (!err) { console.error("guard accepted a stub input:", label); process.exit(1); }
+            if (!String(err?.message ?? err).includes(expected)) { console.error("guard refused for the wrong reason:", label, String(err?.message ?? err)); process.exit(1); }
+            console.log("refused", label);
+          }
+
+          for (const f of ["fleet/teams/_example.yml", "orgs/_example/bw.yml", "projects/_example/webapp/project.yml"]) {
+            const doc = parseYamlObject(Bun.YAML, readFileSync(f, "utf8"), f);
+            console.log("parsed", f, "->", Object.keys(doc).join(","));
+          }
+
+          // pin the guards: each must refuse its stub input.
+          refuses("api without parse", () => requireYamlApi({}), "Bun.YAML.parse missing");
+          refuses("missing api", () => requireYamlApi(undefined), "Bun.YAML.parse missing");
+          refuses("non-object document", () => parseYamlObject({ parse: () => 42 }, "", "stub"), "no YAML object parsed");
           console.log("teams:", loadTeams().length, "projects:", loadProjects().length);
           '

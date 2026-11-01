@@ -19,7 +19,7 @@ $ARGUMENTS
 
 3. **Write the plan as multiple files** — never one big `plan.md`. Always `overview.md` plus one `<NN>-<aspect>.md` per separable area (e.g. `01-cli.md`, `02-inventory.md`, `03-projects.md`, `04-skills.md`). Keep file sets disjoint by resource so slices can run in parallel in one shared checkout.
 
-   **`overview.md`** — Goal (1-2 sentences) · Context (Bun ≥1.2, zero deps; `bin/cnc` CLI; inventory in `fleet/teams/*.yml` loaded via `scripts/lib/inventory.ts`; projects in `projects/<org>/<repo>/` with `project.yml` + `goals/`; GitOps deploys verified by `cnc deploy-check`) with reference patterns as `file:line` · Plan files in execution order · Done when · Risks / open questions.
+   **`overview.md`** — Goal (1-2 sentences) · Context (Bun ≥1.2.21, zero deps; `bin/cnc` CLI; inventory in `fleet/teams/*.yml` loaded via `scripts/lib/inventory.ts`; projects in `projects/<org>/<repo>/` with `project.yml` + `goals/`; GitOps deploys verified by `cnc deploy-check`) with reference patterns as `file:line` · Plan files in execution order · Done when · Risks / open questions.
 
    **Each `<NN>-<aspect>.md`** — Files to change (`path:line`) · Steps (ordered, concrete) · Verify (the `cnc` commands that prove it: `teams`, `status <id>`, `projects`, `deploy-check <org/repo>`) · Done when.
 

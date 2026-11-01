@@ -10,7 +10,9 @@ Pool of VPSes + Claude subscriptions doing coding at super scale. You are the **
 - A dispatched goal runs `claude -p` — the default `pr` flow: one AI developer does the work, opens PR(s), and merges each with `claudetm merge-pr` (fix CI + review comments, then merge). `claudetm start` (parallel agents in worktrees) runs only when `--mode claudetm` is explicitly requested, and automatic merging stays off (`--no-auto-merge`) unless `--auto-merge` is explicitly asked.
 - Deploys are GitOps per project (`project.yml` → `deploy:`). Merged ≠ done — `cnc deploy-check` must be green.
 
-## Commands (from repo root, Bun ≥1.2, zero deps)
+## Commands (from repo root, Bun ≥1.2.21, zero deps)
+
+Runtime floor: the five YAML loaders call `Bun.YAML.parse` — first shipped in Bun v1.2.21 (2025-08-25): https://bun.sh/blog/bun-v1.2.21
 
 | do | run |
 |---|---|
