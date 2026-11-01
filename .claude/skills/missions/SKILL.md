@@ -5,11 +5,12 @@ description: Dispatch and track goals across the fleet — use when asked to sen
 
 # Missions (goals)
 
-A goal = one autonomous work order for one team VPS. Dispatched via tmux + claudetm, so it survives disconnects.
+A goal = one autonomous work order for one team VPS. Dispatched via tmux + `claude -p` (the default `pr` flow), so it survives disconnects.
 
 | want | run |
 |---|---|
 | dispatch deep work | `bin/cnc goal "<goal>" --project <org/repo>` |
+| parallel planner (opt-in, one repo) | `... --mode claudetm` (parallel agents in worktrees; auto-merge off unless explicitly requested) |
 | quick one-shot (no PRs) | `... --mode print` (runs `claude -p` (opus 4.8)) |
 | flight log | `bin/cnc goals` |
 | verify it shipped | `bin/cnc deploy-check <org/repo>` |
@@ -17,7 +18,7 @@ A goal = one autonomous work order for one team VPS. Dispatched via tmux + claud
 | consult the code | read `~/workspace/<org>/<repo>` on the main box — the same clone the team edits |
 | pull a secret while orchestrating | `bin/cnc bw <org> -- get notes "<item>"` — Bitwarden is main-box-only |
 
-Lifecycle: dispatch → team plans + parallel agents → PRs → `claudetm merge-pr` sequentially until green → GitOps deploy → `deploy-check` confirms health.
+Lifecycle: dispatch → the `claude -p` developer does the work → PRs → `claudetm merge-pr` sequentially until green → GitOps deploy → `deploy-check` confirms health. `--mode claudetm` (opt-in) swaps in the parallel planner instead — parallel agents in worktrees, auto-merge off unless explicitly requested.
 
 Rules:
 - Always dispatch through `cnc goal` (never raw ssh) — it records the sortie in `projects/<org>/<repo>/goals/`, which is our only flight log.

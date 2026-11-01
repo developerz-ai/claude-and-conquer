@@ -7,7 +7,7 @@ Pool of VPSes + Claude subscriptions doing coding at super scale. You are the **
 - 1 VPS = 1 team, running a coding agent — `claude` (Anthropic Max) or `glm` (z.ai GLM). Every box mirrors the **whole** workspace at `~/workspace/<org>/<repo>` — identical to local.
 - **C&C's job = the stuff is there:** every repo cloned + its `.env` (secrets) delivered from Bitwarden on every box (`cnc sync-repos`). The worker can't reach Bitwarden — only we can. The **agent does the rest itself** (deps, build, tests, PRs).
 - **The orchestrator picks the box:** `cnc goal` round-robins by state/load across ready boxes (any box can run any goal, since all mirror the workspace). `--team`/`--pool` override.
-- Teams run `claudetm start` (plans → parallel agents → PRs → sequential `claudetm merge-pr` until green) or one-shot `claude -p`.
+- A dispatched goal runs `claude -p` — the default `pr` flow: one AI developer does the work, opens PR(s), and merges each with `claudetm merge-pr` (fix CI + review comments, then merge). `claudetm start` (parallel agents in worktrees) runs only when `--mode claudetm` is explicitly requested, and automatic merging stays off (`--no-auto-merge`) unless `--auto-merge` is explicitly asked.
 - Deploys are GitOps per project (`project.yml` → `deploy:`). Merged ≠ done — `cnc deploy-check` must be green.
 
 ## Commands (from repo root, Bun ≥1.2, zero deps)
