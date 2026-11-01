@@ -54,6 +54,7 @@ main box, and any Claude session here pulls from it. Non-secret connection + ite
 ```
 CNC_BW_CLIENTID=user.xxxx CNC_BW_CLIENTSECRET=yyyy CNC_BW_PASSWORD=… \
   cnc secrets <org> --set-creds <org> --sync      # writes on-box secret file (600) + renders .env
+  cnc secrets <org> --set-password <org> --sync   # ← --set-password is an alias of --set-creds
 cnc bw <org>                                        # unlock + show items
 cnc bw <org> -- get notes ".env <app>"              # ad-hoc pull for a Claude session
 ```

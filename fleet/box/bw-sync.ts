@@ -14,8 +14,8 @@ if (!org) { console.error("usage: bw-sync <org>"); process.exit(1); }
 const HOME = homedir();
 const cfgPath = join(HOME, ".cnc", "bw", `${org}.yml`);
 const secretPath = join(HOME, ".cnc", "bw", `${org}.secret`);
-if (!existsSync(cfgPath)) { console.error(`missing ${cfgPath} — run: cnc secrets <team>`); process.exit(1); }
-if (!existsSync(secretPath)) { console.error(`missing ${secretPath} — set it: cnc secrets <team> --set-password ${org}`); process.exit(1); }
+if (!existsSync(cfgPath)) { console.error(`missing ${cfgPath} — run: cnc secrets ${org}`); process.exit(1); }
+if (!existsSync(secretPath)) { console.error(`missing ${secretPath} — set it: cnc secrets ${org} --set-password ${org}`); process.exit(1); }
 
 const cfg = Bun.YAML.parse(readFileSync(cfgPath, "utf8")) as {
   server: string; account: string;

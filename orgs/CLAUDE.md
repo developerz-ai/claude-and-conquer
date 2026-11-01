@@ -28,8 +28,10 @@ match what exists in the vault; missing items are skipped (warned), not fatal.
 
 1. `bw.yml` (this repo) → pushed to the box at `~/.cnc/bw/<org>.yml`.
 2. Master password → written **on the box only** at `~/.cnc/bw/<org>.secret` (chmod 600),
-   via `cnc secrets <team> --set-password <org>` (reads `CNC_BW_PASSWORD` env, never argv/repo).
+   via `cnc secrets <org> --set-password <org>` (reads `CNC_BW_PASSWORD` env, never argv/repo).
+   `--set-password` is an exact alias of `--set-creds` — same org, same env vars, same file,
+   same exit code.
 3. On the box, `bw-sync <org>` unlocks the vault and renders `~/workspace/<org>/.env` (chmod 600,
    gitignored) for agents to source.
 
-Run it all with `cnc secrets <selector> [--sync]`. See `docs/secrets.md`.
+Run it all with `cnc secrets <org>... | --all [--sync]`. See `docs/secrets.md`.

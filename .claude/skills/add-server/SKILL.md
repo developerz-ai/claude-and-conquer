@@ -33,8 +33,10 @@ and (for private repos) `gh auth` — those are human steps you hand off.
    Use an **API key** (`bw` password login 404s on Vaultwarden):
    ```
    CNC_BW_CLIENTID=user.xxx CNC_BW_CLIENTSECRET=yyy CNC_BW_PASSWORD=… \
-     cnc secrets <id> --set-password <org> --sync
+     cnc secrets <org> --set-password <org> --sync
    ```
+   The credential command takes an **org** (not a team id), and `--set-password` is an exact alias
+   of `--set-creds` — same org, same env vars, same file, same exit code.
    The password/key land in `~/.cnc/bw/<org>.secret` (chmod 600) on the box; `.env` is rendered
    to `~/workspace/<org>/.env` (600, gitignored). A box handles one org's vault at a time.
 

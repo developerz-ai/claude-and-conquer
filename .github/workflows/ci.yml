@@ -16,6 +16,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: typecheck
         run: bunx tsc --noEmit
+      - name: credential checks
+        run: bun scripts/fleet/secrets.check.ts
       - name: cnc smoke (offline commands)
         run: |
           bin/cnc help

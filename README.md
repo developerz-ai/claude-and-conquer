@@ -85,6 +85,7 @@ bin/cnc sync-repos --all      # put every repo + its .env on every box (mirror t
 
 # secrets live on the MAIN box only (workers just code):
 bin/cnc secrets acme --set-creds acme --sync   # render ~/workspace/acme/.env from its vault
+bin/cnc secrets acme --set-password acme       # ← --set-password is an alias of --set-creds
 bin/cnc bw acme -- get notes ".env webapp"     # ad-hoc secret pull for a Claude session
 
 # run missions
@@ -99,7 +100,7 @@ bin/cnc deploy-check acme/webapp       # did it actually ship?
 |---|---|
 | fleet | `teams` · `status` · `accounts` · `usage` · `ssh` · `exec` |
 | provision | `bootstrap` (+ Chromium) · `gh-setup` · `optimize [--persist]` · `provision` (all-in-one) · `sync-repos` |
-| secrets (main box only) | `secrets <org> [--set-creds <org>] [--sync]` · `bw <org> [-- <bw args>]` |
+| secrets (main box only) | `secrets <org> [--set-creds <org> \| --set-password <org>] [--sync]` · `bw <org> [-- <bw args>]` |
 | scaffold | `new-team` · `new-project` |
 | missions | `goal` · `goals` · `projects` · `deploy-check` |
 

@@ -45,21 +45,46 @@ Sources: [Arch bug #74175](https://bugs.archlinux.org/task/74175),
 ## Setting it up (on the main box)
 
 Creds are passed via **env vars only** — never argv, never the repo. `cnc secrets --set-creds`
-writes whatever of `BW_CLIENTID` / `BW_CLIENTSECRET` / `BW_PASSWORD` are present to the on-box
-secret file (600):
+(or its exact alias `--set-password`) writes whatever of `BW_CLIENTID` / `BW_CLIENTSECRET` /
+`BW_PASSWORD` are present to the on-box secret file (600):
 
 ```bash
 CNC_BW_CLIENTID='user.xxxx' \
 CNC_BW_CLIENTSECRET='yyyy' \
 CNC_BW_PASSWORD='<master password>' \
-  bin/cnc secrets acme --set-creds acme --sync
+  bin/cnc secrets acme --set-creds acme --sync   # --set-password acme does the same thing
 ```
 
-`cnc secrets <org>... | --all [--set-creds <org>] [--sync]`:
+`cnc secrets <org>... | --all [--set-creds <org> | --set-password <org>] [--sync]`:
 1. installs `bw` 2024.9.0 locally if missing,
 2. copies `orgs/<org>/bw.yml` → `~/.cnc/bw/<org>.yml`,
-3. `--set-creds <org>` → writes `~/.cnc/bw/<org>.secret` (600) from `$CNC_BW_*`,
+3. `--set-creds <org>` (alias: `--set-password <org>`) → writes `~/.cnc/bw/<org>.secret` (600)
+   from `$CNC_BW_*`,
 4. `--sync` → runs `bw-sync <org>` → renders `~/workspace/<org>/.env` from the manifest.
+
+`--set-creds` and `--set-password` are **exact aliases** — same org, same env vars, same file,
+same exit code. Either spelling is fine.
+
+### When the command refuses
+
+The request is validated **before anything touches the disk** (no `mkdir`, no `bw` download, no
+writes), and a refusal exits **1**:
+
+| request | result |
+|---|---|
+| `--set-creds <org>` / `--set-password <org>` where `orgs/<org>/bw.yml` does not exist | error naming that org (and the known orgs), exit 1 |
+| a credential flag with no value | error, exit 1 |
+| both flags naming different orgs | error, exit 1 |
+| no credential material in the env — no `$CNC_BW_PASSWORD`, and no `$CNC_BW_CLIENTID` + `$CNC_BW_CLIENTSECRET` | error, exit 1 |
+| a positional org with no `orgs/<org>/bw.yml` | warned and skipped; if no org is processed at all → error, exit 1 |
+
+"Credential setup succeeded" means the credentials were **actually written**: `creds✓` is printed
+only after `~/.cnc/bw/<org>.secret` exists and is non-empty — otherwise the command fails instead
+of reporting success.
+
+**Diagnostics never carry credential values.** They may name env-var *keys*
+(`CNC_BW_PASSWORD`, `CNC_BW_CLIENTID`, `CNC_BW_CLIENTSECRET`) and the file path
+(`~/.cnc/bw/<org>.secret`) — never a value, never the rendered `.env`.
 
 ## Ad-hoc access — `cnc bw` (for a Claude session)
 
