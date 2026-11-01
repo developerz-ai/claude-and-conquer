@@ -41,7 +41,7 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
    argv/repo, pass via env (they land in a 600 file on the box only):
    ```
    CNC_BW_CLIENTID=user.xxx CNC_BW_CLIENTSECRET=yyy CNC_BW_PASSWORD=… \
-     cnc secrets <team> --set-password <org> --sync
+     cnc secrets <team> --set-creds <org> --sync
    ```
    Use an **API key** (not email+password — the `bw` CLI password login 404s on Vaultwarden).
    Full design + how to get the API key: `docs/secrets.md`.
