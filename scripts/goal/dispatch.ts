@@ -1,9 +1,11 @@
-// cnc goal "<text>" --project <org/repo> [--team <id>] [--mode claudetm|print]
+// cnc goal "<text>" --project <org/repo> [--team <id>] [--mode pr|claudetm|print]
 //
 // Flight-controller dispatch: route a goal to the owning team's VPS and start
 // autonomous work there inside a tmux session, so it survives our disconnect.
 //
-// mode=claudetm (default): claudetm start "<goal>" — plans, opens PRs, and runs its merge-pr
+// mode=pr (default): `claude -p` is the AI developer — does the work, opens focused PR(s), and
+//   merges each with `claudetm merge-pr` (fixes CI + review comments) before merging.
+// mode=claudetm (opt-in): claudetm start "<goal>" — plans, opens PRs, and runs its merge-pr
 //   cycle that resolves CI + review comments BEFORE merging each PR (no --auto-merge unless asked).
 // mode=print: one-shot `claude -p` (default model opus 4.8) for quick jobs that
 //   don't need the PR machinery.
@@ -21,7 +23,7 @@ const argv = process.argv.slice(2);
 const goal = argv.find((a) => !a.startsWith("-"));
 const projectArg = argAfter(argv, "--project");
 if (!goal || !projectArg) {
-  fail('usage: cnc goal "<goal text>" --project <org/repo> [--team <id>] [--mode claudetm|print]');
+  fail('usage: cnc goal "<goal text>" --project <org/repo> [--team <id>] [--mode pr|claudetm|print]');
 }
 
 const project = findProject(projectArg);
