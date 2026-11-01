@@ -16,6 +16,8 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: typecheck
         run: bunx tsc --noEmit
+      - name: unit tests
+        run: bun run test
       - name: cnc smoke (offline commands)
         run: |
           bin/cnc help
