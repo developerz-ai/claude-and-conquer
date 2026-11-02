@@ -1,8 +1,8 @@
-// cnc provision <selector> [--persist] [--sync] — one-shot new-box setup.
-// Runs, per selected team: bootstrap -> optimize -> secrets (push per-org BW config).
+// cnc provision <selector> [--persist] — one-shot new-box setup.
+// Runs, per selected team: gh-setup -> bootstrap -> optimize.
 // This is the "stand up / re-tune a dev box" button the add-server skill drives.
 //   --persist  optimize also writes fstab + GRUB mitigations=off (reboot needed)
-//   --sync     secrets also renders ~/workspace/<org>/.env (needs creds already set)
+// No secrets step: Bitwarden lives on the MAIN controller only (`cnc secrets <org> --sync`).
 import { selectTeams, REPO_ROOT } from "../lib/inventory.ts";
 import { sshExec } from "../lib/ssh.ts";
 import { c, fail } from "../lib/cli.ts";
