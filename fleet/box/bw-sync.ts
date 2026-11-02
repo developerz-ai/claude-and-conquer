@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
-// Runs ON a box (pushed to ~/.cnc/bin/bw-sync.ts by `cnc secrets`).
-// Renders ~/workspace/<org>/.env from ~/.cnc/bw/<org>.yml using the on-box master
-// password in ~/.cnc/bw/<org>.secret. No secret ever leaves the box; .env is chmod 600.
+// Runs on the MAIN controller box — executed from this repo path by `cnc secrets --sync`.
+// Nothing pushes it to a worker box (only agents.sh is pushed).
+// Renders ~/workspace/<org>/.env from ~/.cnc/bw/<org>.yml using the master password in
+// ~/.cnc/bw/<org>.secret. No secret ever leaves the main box; .env is chmod 600.
 //
-//   bun ~/.cnc/bin/bw-sync.ts <org>
+//   bun fleet/box/bw-sync.ts <org>
 import { readFileSync, writeFileSync, existsSync, chmodSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
@@ -14,8 +15,8 @@ if (!org) { console.error("usage: bw-sync <org>"); process.exit(1); }
 const HOME = homedir();
 const cfgPath = join(HOME, ".cnc", "bw", `${org}.yml`);
 const secretPath = join(HOME, ".cnc", "bw", `${org}.secret`);
-if (!existsSync(cfgPath)) { console.error(`missing ${cfgPath} — run: cnc secrets <team>`); process.exit(1); }
-if (!existsSync(secretPath)) { console.error(`missing ${secretPath} — set it: cnc secrets <team> --set-creds ${org}`); process.exit(1); }
+if (!existsSync(cfgPath)) { console.error(`missing ${cfgPath} — run: cnc secrets ${org}`); process.exit(1); }
+if (!existsSync(secretPath)) { console.error(`missing ${secretPath} — set it: cnc secrets ${org} --set-creds ${org}`); process.exit(1); }
 
 const cfg = Bun.YAML.parse(readFileSync(cfgPath, "utf8")) as {
   server: string; account: string;
