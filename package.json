@@ -13,6 +13,7 @@
     "teams": "bun scripts/fleet/list.ts",
     "projects": "bun scripts/projects/list.ts",
     "goals": "bun scripts/goal/list.ts",
+    "test": "bun scripts/fleet/secrets.check.ts",
     "verify": "bunx tsc --noEmit"
   },
   "engines": {

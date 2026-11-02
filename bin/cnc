@@ -42,7 +42,8 @@ fleet
   cnc bootstrap <team>               install tools + clone repos on a fresh VPS
   cnc sync-repos [selector] [--deps] [--no-env]  put every repo + its .env on every box (mirror the workspace; --deps also installs)
   cnc optimize <selector> [--persist] [--no-firewall]  tune boxes for dev + ufw lock to SSH-only
-  cnc secrets <org>... | --all [--set-creds <org>] [--sync]  render org .env from Bitwarden (MAIN box only)
+  cnc secrets <org>... | --all [--set-creds <org> | --set-password <org>] [--sync]  render org .env from Bitwarden (MAIN box only)
+       a credential request naming an org with no orgs/<org>/bw.yml matches no org — exits nonzero, writes nothing
   cnc bw <org> [-- <bw args>]        access an org's Bitwarden vault (MAIN box; for Claude sessions)
   cnc env <team> <org/repo> [--item <name>]  deliver a repo's .env from Bitwarden to a worker
   cnc env <team> <org> --bashrc --item <name>  install org keys into the worker's ~/.bashrc

@@ -31,7 +31,9 @@ no `bw` CLI, no per-box org config, no vault.
 1. `bw.yml` (this repo) → copied to the main box at `~/.cnc/bw/<org>.yml`.
 2. Master password → written **on the main box only** at `~/.cnc/bw/<org>.secret` (chmod 600),
    via `cnc secrets <org> --set-creds <org>` (reads `CNC_BW_PASSWORD` env, never argv/repo).
+   `--set-password <org>` is an exact alias of `--set-creds` — same org, same env vars, same
+   file, same exit code.
 3. On the main box, `bw-sync <org>` (run by `cnc secrets --sync`) unlocks the vault and renders
    `~/workspace/<org>/.env` (chmod 600, gitignored) for agents to source.
 
-Run it all with `cnc secrets <org> [--set-creds <org>] [--sync]`. See `docs/secrets.md`.
+Run it all with `cnc secrets <org>... | --all [--set-creds <org>] [--sync]`. See `docs/secrets.md`.

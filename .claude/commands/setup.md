@@ -43,8 +43,10 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
    file on the main box only):
    ```
    CNC_BW_CLIENTID=user.xxx CNC_BW_CLIENTSECRET=yyy CNC_BW_PASSWORD=… \
-     cnc secrets <org> --set-creds <org> --sync
+     cnc secrets <org> --set-creds <org> --sync      # --set-password <org> is an exact alias
    ```
+   The credential command takes an **org** (not a team id), and `--set-password` is an exact alias
+   of `--set-creds` — same org, same env vars, same file, same exit code.
    Use an **API key** (not email+password — the `bw` CLI password login 404s on Vaultwarden).
    Full design + how to get the API key: `docs/secrets.md`.
    Workers are pure Claude-Max coding boxes: no vault, no `bw` CLI. Their `.env` arrives from the

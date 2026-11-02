@@ -33,8 +33,11 @@ and (for private repos) `gh auth` — those are human steps you hand off.
    creds via env, never argv/repo. Use an **API key** (`bw` password login 404s on Vaultwarden):
    ```
    CNC_BW_CLIENTID=user.xxx CNC_BW_CLIENTSECRET=yyy CNC_BW_PASSWORD=… \
-     cnc secrets <org> --set-creds <org> --sync
+     cnc secrets <org> --set-creds <org> --sync      # --set-password <org> is an exact alias
    ```
+   The credential command takes an **org** (not a team id), and `--set-password` is an exact alias
+   of `--set-creds` — same org, same env vars, same file, same exit code.
+
    **Precondition:** the org needs `orgs/<org>/bw.yml` (server + account + `items:` manifest —
    identity only, no secrets; copy `orgs/_example/`, schema in `orgs/CLAUDE.md`). Without it
    `cnc secrets` skips the org: it prints `– <org>: no orgs/<org>/bw.yml` and writes nothing.
