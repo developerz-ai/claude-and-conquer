@@ -2,6 +2,7 @@
 // load teams through this module so schema defaults live in one place.
 import { readdirSync, readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export interface ClaudeAccount {
   email: string;
@@ -26,7 +27,14 @@ export interface Team {
   file: string;
 }
 
-export const REPO_ROOT = join(dirname(new URL(import.meta.url).pathname), "..", "..");
+// Resolve a module URL (e.g. import.meta.url) to the checkout root containing it.
+// new URL(url).pathname keeps percent-encoding ("my repos" → "my%20repos"), which
+// ENOENTs every loader under a spaced/non-ASCII checkout path — decode first.
+export function repoRootFromModuleUrl(url: string | URL): string {
+  return join(dirname(fileURLToPath(new URL(url))), "..", "..");
+}
+
+export const REPO_ROOT = repoRootFromModuleUrl(import.meta.url);
 const TEAMS_DIR = join(REPO_ROOT, "fleet", "teams");
 
 export function loadTeams(): Team[] {
