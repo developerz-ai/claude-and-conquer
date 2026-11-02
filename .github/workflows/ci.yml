@@ -13,7 +13,7 @@ jobs:
       matrix:
         bun: ["1.2.21", "latest"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           # Bun v1.2.21 (2025-08-25) is the first release exposing Bun.YAML.parse —
@@ -23,6 +23,10 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: typecheck
         run: bunx tsc --noEmit
+      - name: unit tests
+        run: bun run test
+      - name: credential checks
+        run: bun scripts/fleet/secrets.check.ts
       - name: cnc smoke (offline commands)
         run: |
           bin/cnc help

@@ -16,7 +16,7 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
      one-line English pitch for each, deploy target (usually `<org>/infrastructure` via GitOps),
      and the model (default **opus 4.8** — `claude-opus-4-8`).
    - **Secrets:** each org's Bitwarden/Vaultwarden server + account. **Do not** take the master
-     password or API key into the repo — those go straight to the box (step 5).
+     password or API key into the repo — those go straight to the main controller box (step 5).
 
 2. **Personalize the repo** with the scaffolding scripts (they write the right shapes):
    - Team per box:   `cnc new-team <id> --host <h> --user <u> --email <e> --repo <org/repo> ...`
@@ -27,9 +27,10 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
      placeholder). Update the top-level `README.md` and `docs/` to name the actual orgs/fleet.
    - Confirm: `cnc projects` and `cnc teams` list everything.
 
-3. **Provision each box** (automatable): `cnc provision <team>` = `bootstrap` (tmux/git/gh/bun/
-   claude/claudetm/uv + workspace + repo clones) → `optimize` (no swap, IO=none, file limits;
-   add `--persist` for fstab + `mitigations=off`, needs reboot) → `secrets` (push per-org BW config).
+3. **Provision each box** (automatable): `cnc provision <team>` = `gh-setup` (copy the main box's
+   ssh key + `gh` token, so private repos clone) → `bootstrap` (tmux/git/gh/bun/claude/claudetm/uv +
+   workspace + repo clones) → `optimize` (no swap, IO=none, file limits; add `--persist` for fstab +
+   `mitigations=off`, needs reboot). No secrets step — Bitwarden stays on the main box (step 5).
 
 4. **Hand off the human steps** (auth is the ONLY thing you cannot do) — per team:
    ```
@@ -37,14 +38,20 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
    cnc ssh <team> -- gh auth login   # GitHub for PRs / private repos
    ```
 
-5. **Wire secrets** once the operator gives you each org's Bitwarden creds — keep them out of
-   argv/repo, pass via env (they land in a 600 file on the box only):
+5. **Wire secrets — on the MAIN controller box only** (workers get no vault): once the operator gives
+   you each org's Bitwarden creds — keep them out of argv/repo, pass via env (they land in a 600
+   file on the main box only):
    ```
    CNC_BW_CLIENTID=user.xxx CNC_BW_CLIENTSECRET=yyy CNC_BW_PASSWORD=… \
-     cnc secrets <team> --set-password <org> --sync
+     cnc secrets <org> --set-creds <org> --sync      # --set-password <org> is an exact alias
    ```
+   The credential command takes an **org** (not a team id), and `--set-password` is an exact alias
+   of `--set-creds` — same org, same env vars, same file, same exit code.
    Use an **API key** (not email+password — the `bw` CLI password login 404s on Vaultwarden).
    Full design + how to get the API key: `docs/secrets.md`.
+   Workers are pure Claude-Max coding boxes: no vault, no `bw` CLI. Their `.env` arrives from the
+   controller — `cnc sync-repos` mirrors the repos and their `.env` onto the boxes, `cnc env <team>
+   <org/repo>` pushes one vault item to one box.
 
 6. **Verify & first mission.** `cnc status` + `cnc accounts` all green. Then shake down the
    pipeline with a small `/goal` (e.g. a docs-only goal) and confirm `cnc goals` tracks it, and

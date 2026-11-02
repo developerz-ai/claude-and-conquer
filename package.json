@@ -13,13 +13,14 @@
     "teams": "bun scripts/fleet/list.ts",
     "projects": "bun scripts/projects/list.ts",
     "goals": "bun scripts/goal/list.ts",
-    "verify": "bunx tsc --noEmit"
+    "verify": "bunx tsc --noEmit",
+    "test": "bun test && bun scripts/fleet/secrets.check.ts"
   },
   "engines": {
     "bun": ">=1.2.21"
   },
   "devDependencies": {
-    "@types/bun": "^1.3.14",
-    "typescript": "^6.0.3"
+    "@types/bun": "^1.4.3",
+    "typescript": "^7.0.2"
   }
 }
