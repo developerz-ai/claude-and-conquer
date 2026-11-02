@@ -3,9 +3,8 @@
 One directory per org: `orgs/<org>/`. Holds the *connection + manifest* for that org's
 Bitwarden (Vaultwarden) vault and the list of env vars agents need. **Never a password or token.**
 
-Each org runs its **own** Bitwarden server with its own account. A box handles one org's
-secrets at a time (the `bw` CLI is logged into one server/account at once — which matches
-1 VPS = 1 team = 1 org).
+Each org runs its **own** Bitwarden server with its own account. The **main controller box** holds
+them all — one org per vault data dir — and workers get no vault at all.
 
 | file | purpose |
 |---|---|
@@ -26,12 +25,15 @@ match what exists in the vault; missing items are skipped (warned), not fatal.
 
 ## Secret flow (nothing secret is stored here)
 
-1. `bw.yml` (this repo) → pushed to the box at `~/.cnc/bw/<org>.yml`.
-2. Master password → written **on the box only** at `~/.cnc/bw/<org>.secret` (chmod 600),
+The vaults live on the **MAIN controller box only** — workers are pure Claude-Max coding boxes:
+no `bw` CLI, no per-box org config, no vault.
+
+1. `bw.yml` (this repo) → copied to the main box at `~/.cnc/bw/<org>.yml`.
+2. Master password → written **on the main box only** at `~/.cnc/bw/<org>.secret` (chmod 600),
    via `cnc secrets <org> --set-creds <org>` (reads `CNC_BW_PASSWORD` env, never argv/repo).
    `--set-password <org>` is an exact alias of `--set-creds` — same org, same env vars, same
    file, same exit code.
-3. On the box, `bw-sync <org>` unlocks the vault and renders `~/workspace/<org>/.env` (chmod 600,
-   gitignored) for agents to source.
+3. On the main box, `bw-sync <org>` (run by `cnc secrets --sync`) unlocks the vault and renders
+   `~/workspace/<org>/.env` (chmod 600, gitignored) for agents to source.
 
-Run it all with `cnc secrets <org>... | --all [--sync]`. See `docs/secrets.md`.
+Run it all with `cnc secrets <org>... | --all [--set-creds <org>] [--sync]`. See `docs/secrets.md`.

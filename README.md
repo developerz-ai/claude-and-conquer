@@ -111,7 +111,7 @@ Selectors: `--all` · `--pool <p>` · `--tag <t>` · `<team-id>…`
 | where | what |
 |---|---|
 | `fleet/teams/*.yml` | team inventory — schema in [fleet/CLAUDE.md](fleet/CLAUDE.md); copy `_example.yml` |
-| `fleet/box/` | files pushed to boxes — `bw-sync.ts` (secrets), `agents.sh` (coding-agent aliases) |
+| `fleet/box/` | `agents.sh` (coding-agent aliases) — pushed to boxes · `bw-sync.ts` (secrets) — runs on the main controller only |
 | `projects/<org>/<repo>/` | registry: concise-English README + project.yml + goals/ — schema in [projects/CLAUDE.md](projects/CLAUDE.md); see `projects/_example/` |
 | `orgs/<org>/bw.yml` | per-org Bitwarden connection + secret manifest (non-secret) — schema in [orgs/CLAUDE.md](orgs/CLAUDE.md); see `orgs/_example/` |
 | `bin/cnc` | the CLI (Bun, zero deps) |
@@ -125,5 +125,5 @@ Selectors: `--all` · `--pool <p>` · `--tag <t>` · `<team-id>…`
 - **Mirror everything.** Every box has every repo + its `.env`; the commander round-robins goals by load.
 - **Humans do OAuth.** Subscription logins can't be automated — `cnc ssh <team> --login`.
 - **No secrets in this repo.** Account *emails* and Bitwarden *server URLs* are identity, not credentials.
-  Master passwords, API keys, and tokens live **only on the box** — see [docs/secrets.md](docs/secrets.md).
+  Master passwords, API keys, and tokens live **only on the main box** — see [docs/secrets.md](docs/secrets.md).
 - **Merged ≠ done.** A mission ends when `deploy-check` is green.

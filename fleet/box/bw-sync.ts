@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
-// Runs ON a box (pushed to ~/.cnc/bin/bw-sync.ts by `cnc secrets`).
-// Renders ~/workspace/<org>/.env from ~/.cnc/bw/<org>.yml using the on-box master
-// password in ~/.cnc/bw/<org>.secret. No secret ever leaves the box; .env is chmod 600.
+// Runs on the MAIN controller box — executed from this repo path by `cnc secrets --sync`.
+// Nothing pushes it to a worker box (only agents.sh is pushed).
+// Renders ~/workspace/<org>/.env from ~/.cnc/bw/<org>.yml using the master password in
+// ~/.cnc/bw/<org>.secret. No secret ever leaves the main box; .env is chmod 600.
 //
-//   bun ~/.cnc/bin/bw-sync.ts <org>
+//   bun fleet/box/bw-sync.ts <org>
 import { readFileSync, writeFileSync, existsSync, chmodSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, dirname } from "node:path";
