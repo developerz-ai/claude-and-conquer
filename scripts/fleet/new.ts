@@ -34,4 +34,4 @@ tags: [tag:${pool}]
 `;
 writeFileSync(file, yml);
 console.log(`${c.green("✓")} wrote fleet/teams/${id}.yml`);
-console.log(c.dim(`next: cnc provision ${id}   (bootstrap + optimize + secrets), then cnc ssh ${id} --login`));
+console.log(c.dim(`next: cnc provision ${id}   (gh-setup + bootstrap + optimize), then cnc ssh ${id} --login`));
