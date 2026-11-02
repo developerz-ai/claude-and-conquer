@@ -9,7 +9,7 @@ jobs:
     # GitHub-hosted runner (org rule: private repos on Ubicloud, public on GitHub-hosted).
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -18,6 +18,8 @@ jobs:
         run: bunx tsc --noEmit
       - name: unit tests
         run: bun run test
+      - name: credential checks
+        run: bun scripts/fleet/secrets.check.ts
       - name: cnc smoke (offline commands)
         run: |
           bin/cnc help
