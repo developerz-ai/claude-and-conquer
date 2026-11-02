@@ -25,7 +25,28 @@ jobs:
           bin/cnc help
           bin/cnc teams
           bin/cnc projects
-          bin/cnc goal 2>&1 | grep -q usage || true
+      - name: cnc goal usage guard
+        run: bash .github/scripts/goal-usage.sh
+      - name: goal usage guard rejects unexpected failures
+        run: |
+          set +e
+          # Each stub must be REJECTED by the guard, i.e. the guard must exit
+          # exactly 1 on: a crash, a missing usage line, an unexpected exit
+          # status, and a usage line printed with an exit status other than 1.
+          for stub in \
+            "echo boom >&2; exit 139" \
+            "echo nope >&2; exit 1" \
+            "echo x >&2; exit 2" \
+            "exit 0" \
+            "echo 'error: usage: cnc goal <goal text> --project <org/repo>' >&2; exit 0"; do
+            bash .github/scripts/goal-usage.sh sh -c "$stub"
+            status=$?
+            if [ "$status" -ne 1 ]; then
+              echo "goal-usage guard exited $status on stub [$stub], expected exactly 1" >&2
+              exit 1
+            fi
+          done
+          set -e
       - name: yaml inventory parses
         run: |
           bun -e '
