@@ -12,6 +12,12 @@ policy file are off limits. A red `main` and a stuck Dependabot PR belong to `he
 2. Open bugs (`gh issue list --state open --label bug --json number,title,url`), each starting from a test that fails on `main`.
 3. `CLAUDE.md` and README claims that no longer match the code, then dead code.
 
+## Rows
+
+- `gate-on-main` — the existing check that the gate on fresh `main` found something broken or flaky.
+- `open-bugs` — the existing check for open bugs labelled `bug`.
+- `stale-claims-dead-code` — the existing check for `CLAUDE.md` and README claims that no longer match the code, then dead code.
+
 ## Ship
 
 One small PR per improvement, its evidence in the body, `bun install --frozen-lockfile && bunx tsc --noEmit && bun run test` green first. Never bump the version or touch release automation here.
