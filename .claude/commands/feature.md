@@ -1,5 +1,5 @@
 ---
-description: End-to-end feature/sweep workflow for claude-and-conquer — understand, check the live fleet, explore, slice by resource, build with parallel agents in this one checkout (no worktrees), typecheck + smoke the CLI, PR, merge, leave the inventory true.
+description: End-to-end feature/sweep workflow for claude-and-conquer — understand, check the live fleet, explore, slice by resource, build with parallel agents in this one checkout (no worktrees), typecheck + unit tests + smoke the CLI, PR, merge, leave the inventory true.
 argument-hint: <what you want built or fixed, plain language>
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Agent, SendMessage, TaskCreate, TaskUpdate, TaskList, Skill, WebFetch
 ---
@@ -49,10 +49,11 @@ Natural disjoint slices: one `scripts/<resource>/` subtree per agent (`fleet/`, 
 | | Agent (per iteration) | Coordinator (once, at the end) |
 |---|---|---|
 | typecheck | `bunx tsc --noEmit` **once, when otherwise done** — it is project-wide by nature, so this is the floor | `bun run verify` |
+| unit tests | `bun run test` after touching `scripts/lib/` — the `bun:test` suite `scripts/lib/inventory.test.ts` plus the offline `scripts/fleet/secrets.check.ts` (temp HOME, stub `bw`, never SSHes) | same — `bun run test` in CI order (covers the CI steps `unit tests` and `credential checks`) |
 | CLI smoke | only the offline subcommand it changed: `bin/cnc teams` · `projects` · `goals` · `help`; when you touch the goal path, the `cnc goal` usage guard — `bash .github/scripts/goal-usage.sh` (argument-less, so it never dispatches) | the full CI sequence — `bin/cnc help`, `teams`, `projects`, plus the inventory-parse check and the `cnc goal` usage guard (`bash .github/scripts/goal-usage.sh`, CI step `cnc goal usage guard`) |
 | inventory | `bun -e 'import { loadTeams } from "./scripts/lib/inventory.ts"; loadTeams()'` after touching a yml | same, over teams **and** projects |
 
-There is no test runner in this repo — the CLI smoke *is* the test, so exercise the exact path you changed rather than assuming a typecheck covers it. Whole-repo green is yours and nobody else's.
+The repo does have a test runner: `bun run test` — a `bun:test` suite over the `scripts/lib/` loaders (`scripts/lib/inventory.test.ts`: repo-root resolution, YAML loading, `inventory.ts` + `projects.ts`) followed by the offline credential checks (`scripts/fleet/secrets.check.ts`: temp HOME, stub `bw`, dummy creds — never SSHes). The suite covers the loaders, not your surface — exercise the exact path you changed rather than assuming a typecheck or the suite covers it. Whole-repo green is yours and nobody else's.
 
 **The repo-specific trap: most `cnc` commands talk to live VPSes.** `status`, `accounts`, `usage`, `ssh`, `exec` and `sync-repos` all open SSH sessions to real boxes. N agents each running `cnc status --all` hammers the fleet, serialises on the network rather than the CPU, and produces N conflicting snapshots of a moving target. **Agents run only the offline commands** — the ones that read local yml (`teams`, `projects`, `goals`, `help`). Anything that touches a live box is yours, once, at the end. An agent must **never** run `sync-repos`, `exec`, or `goal` — with one exception that is safe by construction: **`cnc goal` with NO arguments prints the usage line and exits 1**, before any team or project lookup, so it never dispatches, never spends a subscription and never opens a box. That is exactly what the CI guard `.github/scripts/goal-usage.sh` asserts, which is why `bash .github/scripts/goal-usage.sh` is safe to run anywhere; `cnc goal` *with* a goal and a project stays off-limits to agents.
 
@@ -97,7 +98,7 @@ There is no test runner in this repo — the CLI smoke *is* the test, so exercis
 
    Small change → one agent, or just do it yourself.
 
-7. **Verify.** Once: `bun run verify` (`bunx tsc --noEmit`), then the CI smoke sequence — `bin/cnc help`, `teams`, `projects`, the inventory-parse check over teams and projects, and the `cnc goal` usage guard `bash .github/scripts/goal-usage.sh` (CI step `cnc goal usage guard`; the guard must fail on a crash, a missing usage line or any unexpected exit, and CI's `goal usage guard rejects unexpected failures` step proves it is not vacuous). Then exercise the surface you actually changed: a new team via `cnc status <id>`, a new project via `cnc projects`, a shipped mission via `cnc deploy-check <org/repo>`. There is no unit-test suite, so this *is* the test.
+7. **Verify.** Once, in CI order: `bun run verify` (`bunx tsc --noEmit`), then `bun run test` (CI steps `unit tests` + `credential checks` — the `bun:test` suite `scripts/lib/inventory.test.ts` plus the offline `scripts/fleet/secrets.check.ts`), then the CI smoke sequence — `bin/cnc help`, `teams`, `projects`, the inventory-parse check over teams and projects, and the `cnc goal` usage guard `bash .github/scripts/goal-usage.sh` (CI step `cnc goal usage guard`; the guard must fail on a crash, a missing usage line or any unexpected exit, and CI's `goal usage guard rejects unexpected failures` step proves it is not vacuous). Then exercise the surface you actually changed: a new team via `cnc status <id>`, a new project via `cnc projects`, a shipped mission via `cnc deploy-check <org/repo>`. The unit suite covers the `scripts/lib/` loaders; the smoke sequence is still the test for the surface you changed — the suite narrows what smoke must cover, it does not replace it.
 
 8. **Commit & merge.** **Let every agent finish first** — committing while agents are still writing is the only thing that ever made this complicated. **Then sweep their leftovers**: scratch scripts, debug `console.log` in a CLI whose output is a user interface, stray probes at the repo root, and above all a yml or transcript that captured a token or an IP.
 
@@ -127,6 +128,6 @@ Changed:     <files / resources>
 Fixed:       <n> findings across <m> PRs → #… #…
 Deferred:    <n> — <what, and why not now>               [never omit this line]
 Falsified:   <inventory/doc claims that were wrong, now corrected>
-Verify:      tsc <ok> · cnc smoke <commands run> · inventory parse <ok>
+Verify:      tsc <ok> · bun run test <ok> · cnc smoke <commands run> · inventory parse <ok>
 Fleet:       <cnc status / deploy-check result, or n/a>
 ```
