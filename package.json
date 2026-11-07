@@ -17,7 +17,7 @@
     "test": "bun test && bun scripts/fleet/secrets.check.ts"
   },
   "engines": {
-    "bun": ">=1.2.0"
+    "bun": ">=1.2.21"
   },
   "devDependencies": {
     "@types/bun": "^1.4.4",
