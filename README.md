@@ -127,6 +127,20 @@ bin/cnc deploy-check acme/webapp       # did it actually ship?
 
 Selectors: `--all` · `--pool <p>` · `--tag <t>` · `<team-id>…`
 
+## Releases
+
+To publish a release, first bump `version` in `package.json`. Move the finalized
+entries from `CHANGELOG.md`'s `Unreleased` section into a heading matching that
+version. Then run the repository checks:
+
+```bash
+bun run verify
+bun run test
+```
+
+After committing those changes, create and push the matching `v`-prefixed tag;
+for example, `v0.1.1`. The release workflow runs from that tag.
+
 ## Map
 
 | where | what |
