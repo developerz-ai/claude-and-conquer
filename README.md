@@ -23,7 +23,7 @@ and the flight controller verifies the work actually **deployed**.
   │worker-1│     │worker-2│     │worker-3│   1 VPS = 1 team = 1 coding-agent sub
   └───┬────┘     └───┬────┘     └───┬────┘
       ▼              ▼              ▼
-  parallel agents → PRs → claudetm merge-pr (sequential) → GitOps deploy → deploy-check
+  parallel agents → PRs → claudetm merge-pr (sequential) → configured deploy → deploy-check
 ```
 
 ## The idea
@@ -40,11 +40,15 @@ and the flight controller verifies the work actually **deployed**.
 
 Inside a Claude session on the main box, use **`/goal <text>`** — the commander enriches the goal with
 standing orders (parallel agents, sequential `claudetm merge-pr`, verify gate, ship to
-`../infrastructure`, 100% completion) and dispatches it to the idlest ready box. That box's agent does
-the deep, full work. **The main agent just launches the agents on the worker VPSes.**
+the project's configured deployment method, 100% completion) and dispatches it to the idlest ready box.
+That box's agent does the deep, full work. **The main agent just launches the agents on the worker VPSes.**
+
+Projects configure one of the supported deployment methods: `gitops-argocd`, `docker-compose`, or
+`coolify`. GitOps projects may use an infrastructure repository and stack; other methods use their own
+configured target.
 
 ```bash
-/goal use parallel agents, claudetm merge-pr each PR, deploy to ../infrastructure —
+/goal use parallel agents, claudetm merge-pr each PR, deploy using the configured project method —
       finish the dashboards, find bugs, refactor, 100% complete
 ```
 
@@ -59,7 +63,7 @@ commander can **read the real code locally to consult** while missions run elsew
 
 ## Fork it
 
-This repo is a **template**. Fork it, clone your fork, start Claude, and run **`/setup`** — Claude
+Fork this repository, clone your fork, start Claude, and run **`/setup`** — Claude
 interviews you for servers + projects + orgs, writes the inventory, provisions every VPS, and hands
 you the auth checklist. The **only** step that can't be automated is the Claude subscription login:
 
@@ -70,6 +74,23 @@ bin/cnc ssh <team> --login            # /login the Claude subscription on that b
 GitHub access is propagated for you: `bin/cnc gh-setup <team>` copies the main box's ssh key + `gh`
 token so each worker clones and pushes with the **same access as the commander** (`cnc provision`
 runs it automatically).
+
+## Prerequisites
+
+- An operator machine with authenticated `gh` and [Bun](https://bun.sh/) installed.
+- SSH-reachable Ubuntu or Debian worker VPSes with passwordless `sudo`.
+- One Claude Max login for each worker box; a human completes each login with
+  `bin/cnc ssh <team> --login`.
+
+## Security
+
+`bin/cnc gh-setup` copies the operator's SSH key and `gh` token to each worker so it can access the
+same repositories. Treat workers as trusted extensions of the operator machine: use dedicated,
+disposable worker boxes rather than shared personal or production hosts.
+
+The default worker invocation uses `--dangerously-skip-permissions`, which removes interactive
+approval boundaries for autonomous work. Run it only on those dedicated worker boxes, restrict their
+repository access, and never place credentials in this repository.
 
 ## Quick start
 

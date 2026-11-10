@@ -33,7 +33,8 @@ cnc usage --days 1  # subscription burn per team
 
 1. `cnc goals` shows the session finished.
 2. Check PRs merged on GitHub (claudetm merges sequentially; stragglers: run `claudetm merge-pr <n>` in the repo on the box).
-3. `cnc deploy-check <org/repo>` — green health = done. Red = investigate rollout (ArgoCD/infra repo) before calling it complete.
+3. `cnc deploy-check <org/repo>` — green health = done. Red = investigate the project's configured
+   deployment method (`gitops-argocd`, `docker-compose`, or `coolify`) before calling it complete.
 
 ## Troubleshooting
 

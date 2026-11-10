@@ -7,7 +7,9 @@
 3. **Route** — `cnc goal` resolves the project (`projects/<org>/<repo>/project.yml`), then the team: `--team` flag > `project.yml team:` > fleet `repos:` assignment > best ready team in the project's pool (fewest live goals, then coolest subscription). Before committing, dispatch **pre-flights the sub's active 5h block** on the box (ccusage) — a goal means a coding agent plus parallel subagents, so a hot window (≥ `CNC_BURN_LIMIT`, default $50 API-equiv) refuses dispatch without `--force`.
 4. **Dispatch** — goal text ships via ssh stdin to `~/.cnc/goals/` on the box (no quoting bugs), then a detached tmux session `cnc-<slug>` runs the default `pr` flow — `claude -p "<mission>" --model <model> --fallback-model opus --dangerously-skip-permissions --verbose --output-format stream-json` — inside `~/workspace/<org>/<repo>`, logging to `~/.cnc/logs/`. The sortie is recorded in `projects/<org>/<repo>/goals/<date>-<slug>.yml`.
 5. **Work** — the `claude -p` developer does the work, opens focused PRs, and drives each through `claudetm merge-pr`: wait CI → fix failures → address review comments → resolve conflicts → merge. Sequential, so PRs never trample each other. Only `--mode claudetm` (opt-in) fans out parallel agents in worktrees.
-6. **Ship** — merge to main triggers the project's GitOps pipeline (e.g. CI build → registry → ArgoCD rollout).
+6. **Ship** — merge to main triggers the project's configured deployment method: `gitops-argocd`,
+   `docker-compose`, or `coolify`. GitOps may be CI build → registry → ArgoCD rollout; it is one
+   supported option, not the universal path.
 7. **Confirm** — `cnc deploy-check <org/repo>` hits `deploy.health` URLs. Green = mission complete. This is the flight-controller step: merged-but-not-deployed is NOT done.
 
 ## Why tmux on the box (not ssh-streamed)
@@ -34,3 +36,6 @@ Teams belong to **pools** (`fleet: pool:`). Projects pin a team or draw from a p
 - Commander → team: plain ssh (BatchMode for scripts, `-t` interactive for humans).
 - Teams hold their own credentials (gh auth, Linear keys, .env) — the commander repo stores none of them.
 - Claude subscription OAuth is done by a human per box: `cnc ssh <team> --login`.
+- Dispatch retains the documented `--dangerously-skip-permissions` flag. Its security boundary is a
+  dedicated, disposable worker box with restricted repository access; see the README's
+  [Security guidance](../README.md#security).

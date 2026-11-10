@@ -9,7 +9,8 @@ codes. `cnc goal` is the one command that starts the work on a box.
 When you dispatch a goal, **your instruction is passed to the worker verbatim** — the same text you'd
 type if you ran `claude` by hand. `cnc goal` wraps it in the project's mission template
 (`projects/<org>/<repo>/goal-template.md`, or the shared `projects/_goal-template.md`), which only *adds*
-standing orders (depth/100%, verify gate, `claudetm merge-pr` merges, ship-to-infra). Your words are the
+standing orders (depth/100%, verify gate, `claudetm merge-pr` merges, deploy through the configured
+project method). Your words are the
 core (`{{goal}}`); the orchestrator does **not** rewrite them.
 
 ## Two flows
@@ -28,6 +29,11 @@ PR(s), and merges each with `claudetm merge-pr`. If your prompt says "use parall
   open (it doesn't loop-until-all-merged).
 - **Merges:** via `claudetm merge-pr` — waits for CI, **fixes failures + resolves review comments
   (CodeRabbit)**, then merges. This is "auto-merge that cleans up first."
+
+`--dangerously-skip-permissions` deliberately removes interactive approval boundaries. Use this flow
+only on dedicated, disposable worker boxes with restricted repository access; see the README
+[Security guidance](../README.md#security). Projects deploy through their configured
+`gitops-argocd`, `docker-compose`, or `coolify` method rather than a presumed infrastructure repository.
 
 ### 2. The `claudetm start` planner (`--mode claudetm`)
 
