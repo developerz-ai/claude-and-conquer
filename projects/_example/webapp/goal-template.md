@@ -15,7 +15,9 @@ work across repos when needed.
 - Verify gate before every PR: `{{verify}}`.
 - Open focused PR(s); merge each with `claudetm merge-pr <PR>` (waits for CI, fixes failures + resolves
   review comments, then merges — never merge with unresolved threads).
-- Ship it: deploy config in `{{infra_repo}}` (stack `{{deploy_stack}}`, {{deploy_url}}). Confirm it deploys healthy.
+- Ship it: use the configured `gitops-argocd`, `docker-compose`, or `coolify` deployment method and
+  confirm it deploys healthy at {{deploy_url}}. Update `{{infra_repo}}` (stack `{{deploy_stack}}`) only
+  when the configured method uses an infrastructure repository.
 
 ## This project's specifics
 - (Example) run `bun run db:migrate` after schema changes; seed with `bun run seed` before browser tests.

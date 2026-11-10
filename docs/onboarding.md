@@ -81,5 +81,5 @@ Verify with `claude mcp list`.
 Flip `state: ready` in the team yml once bootstrap + login are done, commit, and dispatch:
 
 ```
-/goal finish the dashboards — parallel agents, claudetm merge-pr each PR, deploy to ../infrastructure, 100%
+/goal finish the dashboards — parallel agents, claudetm merge-pr each PR, deploy using the configured project method, 100%
 ```

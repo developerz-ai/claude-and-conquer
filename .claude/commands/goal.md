@@ -13,7 +13,7 @@ build the mission, start the work, and watch it ship.
 - **Default → `pr`: a `claude -p` AI developer.** This is almost always it. The operator's message **is
   the prompt** — the exact instruction they'd type if they ran `claude` by hand. **Pass it through as the
   mission, verbatim.** If it says *"use parallel agents, use `claudetm merge-pr` to merge each PR,
-  deploy to ../infrastructure, 100%"* — that's **instructions to the developer, NOT a mode switch.** The
+  deploy using the configured project method, 100%"* — that's **instructions to the developer, NOT a mode switch.** The
   `claude -p` developer reads it and does exactly that (spawns `Task` sub-agents for parallel parts, runs
   `claudetm merge-pr` to merge). → `cnc goal "<their prompt>" --project org/repo`
 - **`--mode claudetm` ONLY on an explicit meta-request for the planner** — the operator telling *you* to
@@ -37,7 +37,8 @@ registry, `projects/<org>/<repo>/README.md` describes each). If genuinely ambigu
 **Pass the operator's instruction through as the prompt — don't rewrite it.** `cnc goal` renders the
 project's `goal-template.md` (or the shared `projects/_goal-template.md`) *around* it, adding the
 standing orders (depth/100%, parallel where independent, verify gate, `claudetm merge-pr` merges,
-ship-to-`{{infra_repo}}`). The operator's exact words go in as `{{goal}}`.
+deployment through the project's configured `gitops-argocd`, `docker-compose`, or `coolify` method).
+The operator's exact words go in as `{{goal}}`.
 
 Then: `bin/cnc goal "<their prompt>" --project <org/repo>`. Merge policy for the default flow **is not a
 flag** — the developer merges each PR with `claudetm merge-pr` per the mission. `--mode claudetm` only

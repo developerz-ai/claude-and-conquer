@@ -18,5 +18,7 @@ so work across multiple repos when the task needs it (e.g. the app and its infra
 - **Open focused PR(s)** for your work — one coherent change per PR.
 - **Merge each PR with `claudetm merge-pr <PR>`:** it waits for CI, fixes failures and resolves every
   review comment (CodeRabbit, reviewers), then merges. Never merge a PR with unresolved threads.
-- **Ship it, don't just merge it:** the deploy config lives in `{{infra_repo}}` (stack
-  `{{deploy_stack}}`). Update the infra/stack if needed and confirm the deploy is healthy. Merged ≠ done.
+- **Ship it, don't just merge it:** use the project's configured deployment method
+  (`gitops-argocd`, `docker-compose`, or `coolify`) and confirm the deploy is healthy. When that method
+  uses an infrastructure repository, update `{{infra_repo}}` and stack `{{deploy_stack}}` if needed.
+  Merged ≠ done.

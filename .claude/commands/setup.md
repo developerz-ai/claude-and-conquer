@@ -13,8 +13,9 @@ you cannot discover. Drive the `cnc` scaffolding scripts; don't hand-write boile
 1. **Interview** the operator (only what you can't infer):
    - **Servers:** for each box — host/IP, ssh user, one Claude Max account email. 1 VPS = 1 team.
    - **Orgs & projects:** which orgs (e.g. `acme`, `widgets`, …), which repos per org, a
-     one-line English pitch for each, deploy target (usually `<org>/infrastructure` via GitOps),
-     and the model (default **opus 4.8** — `claude-opus-4-8`).
+     one-line English pitch for each, and deployment method (`gitops-argocd`, `docker-compose`, or
+     `coolify`) plus its configured target. GitOps may use `<org>/infrastructure`; it is not required.
+     Also collect the model (default **opus 4.8** — `claude-opus-4-8`).
    - **Secrets:** each org's Bitwarden/Vaultwarden server + account. **Do not** take the master
      password or API key into the repo — those go straight to the main controller box (step 5).
 
