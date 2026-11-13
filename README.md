@@ -139,7 +139,13 @@ bun run test
 ```
 
 After committing those changes, create and push the matching `v`-prefixed tag;
-for example, `v0.1.1`. The release workflow runs from that tag.
+for example, `v0.1.1`. Then publish the GitHub release for that tag, using the
+matching `CHANGELOG.md` section as the notes:
+
+```bash
+awk -v heading="## [v0.1.1]" '$0 == heading {f=1; next} f && /^## /{exit} f{print} END{exit !f}' CHANGELOG.md > release-notes.md
+gh release create v0.1.1 --title v0.1.1 --notes-file release-notes.md
+```
 
 ## Map
 
