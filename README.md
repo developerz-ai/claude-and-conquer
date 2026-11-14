@@ -127,6 +127,21 @@ bin/cnc deploy-check acme/webapp       # did it actually ship?
 
 Selectors: `--all` · `--pool <p>` · `--tag <t>` · `<team-id>…`
 
+## Releases
+
+Releases are cut by pushing a `vX.Y.Z` tag; [`.github/workflows/release.yml`](.github/workflows/release.yml) does the rest.
+
+1. Set `version` in `package.json` to `X.Y.Z`.
+2. In [`CHANGELOG.md`](CHANGELOG.md), move the `Unreleased` entries under a new `## [X.Y.Z] - YYYY-MM-DD` heading and add its link reference at the bottom.
+3. Check the notes render: `bash .github/scripts/changelog-notes.sh vX.Y.Z`. To preview from GitHub without publishing, run the `release` workflow manually (Actions, `workflow_dispatch`) with the tag.
+4. Merge that change to `main`, then tag the merge commit and push the tag:
+
+   ```bash
+   git tag vX.Y.Z && git push origin vX.Y.Z
+   ```
+
+The workflow runs the CI gate, fails if the tag does not match `package.json` or `CHANGELOG.md` has no non-empty section for it, then creates the GitHub release with that section as its notes and the source tarball plus SHA-256 checksum attached. A tag with a suffix (`v1.0.0-rc.1`) is published as a pre-release.
+
 ## Map
 
 | where | what |
