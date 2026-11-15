@@ -219,5 +219,8 @@ test("CI passes the secret and the required flag to this guard's run", () => {
     .split('\n')
     .filter((line) => !/^\s*#/.test(line));
   expect(live.some((line) => /^\s+PUBLIC_TREE_PRIVATE_WORDS: \$\{\{ secrets\.PUBLIC_TREE_PRIVATE_WORDS \}\}\s*$/.test(line))).toBe(true);
-  expect(live.some((line) => /^\s+PUBLIC_TREE_PRIVATE_WORDS_REQUIRED: \$\{\{ .*&& '1' \|\| '' \}\}\s*$/.test(line))).toBe(true);
+  // The exact condition: a weaker one (`false && '1'`, a renamed repo check) never sets the flag.
+  expect(live.map((line) => line.trim())).toContain(
+    'PUBLIC_TREE_PRIVATE_WORDS_REQUIRED: ${{ (github.event_name != \'pull_request\' || github.event.pull_request.head.repo.full_name == github.repository) && github.actor != \'dependabot[bot]\' && \'1\' || \'\' }}',
+  );
 });
