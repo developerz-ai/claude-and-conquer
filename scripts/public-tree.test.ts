@@ -176,7 +176,7 @@ test('an internal host fires and the public site passes', () => {
 test('a private repository or bare tracker fires; public repositories and image paths pass', () => {
   expect(violations(`see ${ORG}/vault#12`, [])).toEqual(['private repository']);
   expect(violations(`(${DOMAIN}#2964, epic #2958)`, [])).toEqual(['private repository']);
-  expect(violations(`(${['d', 'z'].join('')}#1026)`, [])).toEqual(['private repository']);
+  expect(violations(`(${['d', 'z'].join('')}#12)`, [])).toEqual(['private repository']);
   expect(violations(`${ORG}/ui-debugger-mcp#12, github.com/${ORG}/wurk`, [])).toEqual([]);
   expect(violations(`registry.example.com/${ORG}/vault-demo:sha-1`, [])).toEqual([]);
 });
