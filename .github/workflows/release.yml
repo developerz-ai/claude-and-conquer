@@ -1,0 +1,110 @@
+name: release
+
+# Publish a GitHub release when a v<semver> tag is pushed. The release notes are
+# the matching "## [X.Y.Z]" section of CHANGELOG.md; the job fails if there is
+# none. A manual run (workflow_dispatch) runs the same gate and renders the notes
+# for a tag without publishing anything.
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag whose release notes to preview, e.g. v0.1.0 (nothing is published)"
+        required: true
+        type: string
+
+# Publishing must never be cancelled half-way, so runs queue instead. The group
+# is per ref, so two different tags never displace each other.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: verify and render notes
+    # GitHub-hosted runner (org rule: private repos on Ubicloud, public on GitHub-hosted).
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          # The declared minimum (package.json engines.bun); ci.yml also covers latest.
+          bun-version: "1.2.21"
+      - run: bun install --frozen-lockfile
+      - name: typecheck
+        run: bun run verify
+      - name: unit tests and credential checks
+        run: bun run test
+      - name: cnc smoke (offline commands)
+        run: |
+          bin/cnc help
+          bin/cnc teams
+          bin/cnc projects
+      - name: cnc goal usage guard
+        run: bash .github/scripts/goal-usage.sh
+      - name: tag matches package.json version
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          pkg_version="$(bun -e 'console.log(require("./package.json").version)')"
+          if [ "$TAG" != "v${pkg_version}" ]; then
+            echo "error: tag $TAG does not match package.json version ${pkg_version} (expected v${pkg_version})" >&2
+            exit 1
+          fi
+      - name: render release notes
+        env:
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
+        run: |
+          bash .github/scripts/changelog-notes.sh "$TAG" > "$RUNNER_TEMP/release-notes.md"
+          cat "$RUNNER_TEMP/release-notes.md"
+          {
+            echo "## Release notes for $TAG"
+            echo
+            cat "$RUNNER_TEMP/release-notes.md"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  release:
+    name: publish GitHub release
+    if: github.event_name == 'push'
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: build source archive
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          # The project has no build step (Bun runs the TypeScript directly), so
+          # the release artifact is the tagged source tree plus its checksum.
+          name="claude-and-conquer-${TAG#v}"
+          git archive --format=tar.gz --prefix="${name}/" -o "$RUNNER_TEMP/${name}.tar.gz" HEAD
+          (cd "$RUNNER_TEMP" && sha256sum "${name}.tar.gz" > "${name}.tar.gz.sha256")
+          bash .github/scripts/changelog-notes.sh "$TAG" > "$RUNNER_TEMP/release-notes.md"
+      - name: create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          name="claude-and-conquer-${TAG#v}"
+          prerelease=()
+          case "$TAG" in *-*) prerelease=(--prerelease) ;; esac
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            "${prerelease[@]}" \
+            --title "$TAG" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" \
+            "$RUNNER_TEMP/${name}.tar.gz" \
+            "$RUNNER_TEMP/${name}.tar.gz.sha256"
