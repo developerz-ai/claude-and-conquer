@@ -14,7 +14,7 @@
 
 import { expect, test } from 'bun:test';
 import { spawnSync } from 'node:child_process';
-import { readFileSync, realpathSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 const ROOT = resolve(import.meta.dir, '..');
@@ -204,6 +204,66 @@ test('a required run without the secret fails', () => {
   expect(() => privateWordsForRun(' , \n', true)).toThrow(REQUIRED_ENV);
   expect(privateWordsForRun(undefined, false)).toEqual([]);
   expect(privateWordsForRun('quimtel', true)).toHaveLength(1);
+});
+
+// The only comment a `runs-on:` may carry: the public runner, in the wording ci.yml uses. A name
+// from the secret in that comment rule fires only where the secret is set (CI); this check needs no
+// secret, so a fork, Dependabot and a local run catch it too. The allowed line itself is public, so
+// it is written out; the failure names the file and line, never the offending text.
+const RUNNER_COMMENT = '# GitHub-hosted runner.';
+const RUNS_ON = /^\s*runs-on:/;
+
+/** The failures `text` has for its `runs-on:` comments. Never the offending text. */
+export function runnerCommentFailures(name: string, text: string): string[] {
+  const failures: string[] = [];
+  const lines = text.split('\n');
+  lines.forEach((line, index) => {
+    if (!RUNS_ON.test(line)) return;
+    const above = (lines[index - 1] ?? '').trim();
+    // No comment above the key: nothing can leak there.
+    if (above === RUNNER_COMMENT || !above.startsWith('#')) return;
+    failures.push(`${name}:${index}: the comment above runs-on: is not "${RUNNER_COMMENT}"`);
+  });
+  return failures;
+}
+
+test('the line above every runs-on: is the public runner comment or none', () => {
+  const dir = join(ROOT, '.github/workflows');
+  const files = readdirSync(dir)
+    .filter((name) => name.endsWith('.yml') || name.endsWith('.yaml'))
+    .sort();
+  expect(files.length).toBeGreaterThanOrEqual(2);
+  const failures: string[] = [];
+  let checked = 0;
+  for (const name of files) {
+    const text = readFileSync(join(dir, name), 'utf8');
+    checked += text.split('\n').filter((line) => RUNS_ON.test(line)).length;
+    failures.push(...runnerCommentFailures(name, text));
+  }
+  // A workflow that moved or lost its keys is a failure, never a pass over nothing.
+  expect(checked).toBeGreaterThanOrEqual(2);
+  expect(failures).toEqual([]);
+});
+
+test('a runs-on: comment that is not the public runner fires', () => {
+  const allowed = ['jobs:', '  gate:', `    ${RUNNER_COMMENT}`, '    runs-on: ubuntu-latest', ''].join(
+    '\n',
+  );
+  expect(runnerCommentFailures('ok.yml', allowed)).toEqual([]);
+  // No comment above the key: nothing can leak there.
+  expect(runnerCommentFailures('ok.yml', '    runs-on: ubuntu-latest\n')).toEqual([]);
+  // Any other comment above the key, such as the wording release.yml carried before its reword.
+  const other = ['jobs:', '  gate:', '    # Runs on a runner that is not the public one.', '    runs-on: ubuntu-latest', ''].join(
+    '\n',
+  );
+  expect(runnerCommentFailures('release.yml', other)).toEqual([
+    `release.yml:3: the comment above runs-on: is not "${RUNNER_COMMENT}"`,
+  ]);
+  // A comment further up is not the one above the key.
+  const above = ['# Runs on a runner that is not the public one.', 'jobs:', '    runs-on: ubuntu-latest', ''].join(
+    '\n',
+  );
+  expect(runnerCommentFailures('ok.yml', above)).toEqual([]);
 });
 
 test("CI passes the secret and the required flag to this guard's run", () => {
