@@ -222,7 +222,7 @@ export function runnerCommentFailures(name: string, text: string): string[] {
     const above = (lines[index - 1] ?? '').trim();
     // No comment above the key: nothing can leak there.
     if (above === RUNNER_COMMENT || !above.startsWith('#')) return;
-    failures.push(`${name}:${index}: the comment above runs-on: is not "${RUNNER_COMMENT}"`);
+    failures.push(`${name}:${index + 1}: the comment above runs-on: is not "${RUNNER_COMMENT}"`);
   });
   return failures;
 }
@@ -257,7 +257,7 @@ test('a runs-on: comment that is not the public runner fires', () => {
     '\n',
   );
   expect(runnerCommentFailures('release.yml', other)).toEqual([
-    `release.yml:3: the comment above runs-on: is not "${RUNNER_COMMENT}"`,
+    `release.yml:4: the comment above runs-on: is not "${RUNNER_COMMENT}"`,
   ]);
   // A comment further up is not the one above the key.
   const above = ['# Runs on a runner that is not the public one.', 'jobs:', '    runs-on: ubuntu-latest', ''].join(
