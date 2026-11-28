@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The gate CI runs: typecheck, unit tests + credential checks, offline cnc smoke, goal-usage guard.
+# The local gate: the same checks as CI's typecheck, unit tests, credential checks, smoke and goal-usage steps.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 

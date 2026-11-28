@@ -30,11 +30,24 @@ jobs:
           # declared minimum (package.json engines.bun); "latest" guards the future.
           bun-version: ${{ matrix.bun }}
       - run: bun install --frozen-lockfile
-      - name: bin/check (typecheck, unit tests, credential checks, offline smoke, goal-usage guard)
+      - name: typecheck
+        run: bunx tsc --noEmit
+      - name: unit tests
         env:
+          # The public-tree guard's private words (scripts/public-tree.test.ts). Required on this
+          # repository's own runs, where the secret exists; forks and Dependabot get none.
           PUBLIC_TREE_PRIVATE_WORDS: ${{ secrets.PUBLIC_TREE_PRIVATE_WORDS }}
           PUBLIC_TREE_PRIVATE_WORDS_REQUIRED: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && github.actor != 'dependabot[bot]' && '1' || '' }}
-        run: bin/check
+        run: bun run test
+      - name: credential checks
+        run: bun scripts/fleet/secrets.check.ts
+      - name: cnc smoke (offline commands)
+        run: |
+          bin/cnc help
+          bin/cnc teams
+          bin/cnc projects
+      - name: cnc goal usage guard
+        run: bash .github/scripts/goal-usage.sh
       - name: goal usage guard rejects unexpected failures
         run: |
           set +e
