@@ -21,6 +21,8 @@ Runtime floor: the five YAML loaders call `Bun.YAML.parse` — first shipped in 
 | mirror repos + secrets to boxes | `bin/cnc sync-repos [sel] [--deps]` |
 | dispatch mission (auto-picks box) | `bin/cnc goal "<text>" --project <org/repo>` |
 | track / verify shipped | `bin/cnc goals` · `deploy-check <org/repo>` |
+| the local gate (what CI's steps run: typecheck, tests, offline smoke) | `bin/check` |
+| one test file | `bun test scripts/<path>.test.ts` |
 
 Selectors: `--all` | `--pool <p>` | `--tag <t>` | team ids.
 

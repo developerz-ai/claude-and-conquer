@@ -4,14 +4,23 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   verify:
     # GitHub-hosted runner.
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        bun: ["1.2.21", "latest"]
+        # PRs run the latest Bun; `main` also runs the minimum supported (1.2.21).
+        bun: ${{ fromJSON(github.event_name == 'pull_request' && '["latest"]' || '["1.2.21","latest"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
