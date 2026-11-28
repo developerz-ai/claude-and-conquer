@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# The gate CI runs: typecheck, unit tests + credential checks, offline cnc smoke, goal-usage guard.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+bun run verify
+bun run test
+bin/cnc help >/dev/null
+bin/cnc teams >/dev/null
+bin/cnc projects >/dev/null
+bash .github/scripts/goal-usage.sh
+echo "check: ok"
